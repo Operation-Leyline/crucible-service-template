@@ -1,0 +1,2 @@
+### Empty service: expect HTTP 404 with UnknownOperation
+GET http://127.0.0.1:8080/
