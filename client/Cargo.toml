@@ -1,0 +1,9 @@
+[package]
+name = "crucible-service-client"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+service-sdk-rust = { path = "../sdks/rust" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

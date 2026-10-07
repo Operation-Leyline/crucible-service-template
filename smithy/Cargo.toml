@@ -1,0 +1,12 @@
+[package]
+name = "service-model"
+version = "0.1.0"
+edition = "2024"
+publish = false
+links = "service_model"
+
+[package.metadata.smithy]
+sources = ["model"]
+
+[build-dependencies]
+crucible-build.workspace = true

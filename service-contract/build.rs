@@ -1,5 +1,5 @@
 fn main() {
-    crucible_build::from_smithy("../smithy")
+    crucible_build::service("service_model")
         .policy("../crucible.toml")
         .generate();
 }

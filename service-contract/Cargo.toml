@@ -1,0 +1,15 @@
+[package]
+name = "service-contract"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[package.metadata.smithy]
+sources = ["../smithy/model"]
+
+[dependencies]
+crucible.workspace = true
+service-model = { path = "../smithy" }
+
+[build-dependencies]
+crucible-build.workspace = true

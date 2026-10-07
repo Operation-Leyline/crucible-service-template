@@ -4,12 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [package.metadata.smithy]
-sources = ["../smithy"]
+sources = ["../smithy/model"]
 
 [dependencies]
-crucible = { git = "https://github.com/Operation-Leyline/crucible", rev = "a36ddee1e052cd61e3e5c222fe7e31bea07e4ede", default-features = false, features = ["http"] }
+crucible.workspace = true
+service-contract = { path = "../service-contract" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
 uuid = { version = "1", features = ["v4"] }
-
-[build-dependencies]
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "a36ddee1e052cd61e3e5c222fe7e31bea07e4ede" }
