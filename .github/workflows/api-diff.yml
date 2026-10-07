@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Operation-Leyline/crucible-actions
-          ref: cbc01f24f7b6e3c4ed9014dcfdae1ea6e650dbb6
+          ref: 31cacf98b4960f90eb541b8df41a9661d2dab2a3
           token: ${{ steps.app-token.outputs.token }}
           path: crucible-actions
           persist-credentials: false
@@ -43,30 +43,14 @@ jobs:
       - uses: ./crucible-actions/setup-crucible
         id: tooling
         with:
-          crucible-ref: a36ddee1e052cd61e3e5c222fe7e31bea07e4ede
+          crucible-ref: 271c29155bb53fbcbdb52814e4622a749ce36354
           token: ${{ steps.app-token.outputs.token }}
-      - name: Fetch service dependencies
-        shell: bash
-        env:
-          CRUCIBLE_TOKEN: ${{ steps.app-token.outputs.token }}
-          CARGO_NET_GIT_FETCH_WITH_CLI: 'true'
-        run: |
-          # Authenticate fetches without persisting credentials for build scripts.
-          export GIT_CONFIG_COUNT=1
-          export GIT_CONFIG_KEY_0="url.https://x-access-token:${CRUCIBLE_TOKEN}@github.com/Operation-Leyline/crucible.insteadOf"
-          export GIT_CONFIG_VALUE_0=https://github.com/Operation-Leyline/crucible
-          for checkout in baseline proposed; do
-            (cd "$checkout" && cargo fetch --locked)
-          done
       - uses: ./crucible-actions/api-diff
-        env:
-          CARGO_NET_OFFLINE: 'true'
         with:
           cli: ${{ steps.tooling.outputs.cli }}
-          baseline-directory: baseline
-          proposed-directory: proposed
-          model-path: target/crucible-model.json
-          build-command: python "$GITHUB_WORKSPACE/proposed/service/tools/export_api_model.py"
+          before: baseline/smithy
+          after: proposed/smithy
+          config: proposed/crucible.toml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

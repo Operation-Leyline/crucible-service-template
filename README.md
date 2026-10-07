@@ -63,13 +63,11 @@ From the repository root, run `cargo fmt --all`, `cargo clippy --all-targets -- 
 
 `crucible.toml` selects naming and path conventions enforced by every Cargo build. Documentation requirements start as warnings. `service/build.rs` selects this required file with `.policy("../crucible.toml")`; invalid rules, missing config, and error findings fail generation. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/a36ddee1e052cd61e3e5c222fe7e31bea07e4ede/docs/api-policy.md) for severities and exact, documented exceptions.
 
-The included `.github/workflows/api-diff.yml` compares pull request base/head contracts with the proposed compatibility policy. It builds both revisions, exports their assembled models, and runs the private shared action. Findings appear in the job summary and `api-diff-report` artifact; breaking changes fail the job.
+The included `.github/workflows/api-diff.yml` passes the pull request's base/head `smithy/` directories and proposed policy to the private shared action. The checker assembles both directories with its pinned Smithy compiler, imports Crucible traits, flattens mixins, and compares the APIs. Findings appear in the job summary and `api-diff-report` artifact; breaking changes fail the job.
 
 After creating a repository from this template, configure variable `CRUCIBLE_APP_ID` and secret `CRUCIBLE_APP_PRIVATE_KEY` for the existing `crucible-ci-read` GitHub App. Its Operation-Leyline installation needs Contents: read access to `crucible` and `crucible-actions`. The workflow uses that installation even when your service belongs to another organization. GitHub does not copy template repository secrets into new repositories.
 
-Private dependencies are fetched with temporary authentication, then builds run offline without persisted Git credentials. Keep `Cargo.lock` committed. Fork PRs do not receive repository secrets. A missing or unbuildable baseline fails the job; compatibility checks never silently skip it.
-
-`service/tools/export_api_model.py` selects the service's assembled AST from Cargo's reported build output. This also supports the template's original baseline, whose build helper predates the export hook. The proposed revision's exporter builds both checkouts using each revision's own dependency lockfile.
+The compatibility job reads Smithy sources and does not build either Rust service. The baseline needs its `smithy/` directory, even if it uses an older build helper. Missing directories or invalid Smithy fail the job. Fork PRs do not receive repository secrets. Keep `Cargo.lock` committed for ordinary service builds.
 
 ## Smithy editor checks
 
@@ -83,4 +81,4 @@ Matching Crucible releases will include the plugin as a release asset.
 
 ## Dependency versions
 
-Both Crucible dependencies and the workflow checker pin the same immutable commit containing the shared exception models and API policies, merged in [Crucible PR #75](https://github.com/Operation-Leyline/crucible/pull/75). Update all three pins together when adopting a release. Shared actions have their own reviewed commit pin. `Cargo.lock` is committed; the default compiler and prelude are Smithy 1.74.0.
+Both Crucible dependencies pin the same immutable commit containing the shared exception models and API policies, merged in [Crucible PR #75](https://github.com/Operation-Leyline/crucible/pull/75). Update both together when adopting a release. The workflow independently pins the checker with Smithy-directory support and the shared actions. `Cargo.lock` is committed; the default compiler and prelude are Smithy 1.74.0.
