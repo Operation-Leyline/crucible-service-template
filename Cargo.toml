@@ -5,5 +5,5 @@ default-members = ["service"]
 resolver = "3"
 
 [workspace.dependencies]
-crucible-server-runtime-rust = { git = "https://github.com/Operation-Leyline/crucible", rev = "b5b10da90f687777ff94b2808ac048ff29ac6c32", default-features = false, features = ["http"] }
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "b5b10da90f687777ff94b2808ac048ff29ac6c32", features = ["java"] }
+crucible-server-runtime-rust = { git = "https://github.com/Operation-Leyline/crucible", rev = "f7544a8b4802ec2409ce1c64eeba9527fa55992d", default-features = false, features = ["http"] }
+crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "f7544a8b4802ec2409ce1c64eeba9527fa55992d", features = ["java"] }

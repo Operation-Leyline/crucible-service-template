@@ -130,7 +130,7 @@ model.swift_client("swift")
 
 All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings.
 
-A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/b5b10da90f687777ff94b2808ac048ff29ac6c32/docs/build-outputs.md) for the complete feature list, output settings, and examples.
+A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f7544a8b4802ec2409ce1c64eeba9527fa55992d/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
 ## Running the Java client with Gradle
 
