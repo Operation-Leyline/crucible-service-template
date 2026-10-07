@@ -1,0 +1,22 @@
+schema_version = 1
+
+[rules.naming]
+severity = "error"
+operations = "PascalCase"
+shapes = "PascalCase"
+members = "camelCase"
+enum_values = "SCREAMING_SNAKE_CASE"
+
+[rules.paths]
+severity = "error"
+segment_case = "kebab-case"
+parameter_case = "camelCase"
+
+[rules.documentation]
+severity = "warning"
+targets = ["operations", "errors"]
+
+[compatibility]
+severity = "error"
+wire = true
+sdk_source = true

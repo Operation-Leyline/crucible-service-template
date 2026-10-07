@@ -1,3 +1,5 @@
 fn main() {
-    crucible_build::from_smithy("../smithy").generate();
+    crucible_build::from_smithy("../smithy")
+        .policy("../crucible.toml")
+        .generate();
 }

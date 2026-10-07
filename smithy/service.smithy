@@ -50,6 +50,7 @@ structure ItemDetails {
 
 list ItemList { member: ItemDetails }
 
+/// Creates an item; replaying the same client token returns the original result.
 @http(method: "POST", uri: "/items", code: 201)
 operation CreateItem {
     input: CreateItemInput
@@ -72,6 +73,7 @@ structure CreateItemOutput {
     item: ItemDetails
 }
 
+/// Retrieves an item by its immutable identifier.
 @readonly
 @http(method: "GET", uri: "/items/{itemId}", code: 200)
 operation GetItem {
@@ -118,6 +120,7 @@ structure UpdateItemOutput {
     item: ItemDetails
 }
 
+/// Deletes an item; an already absent item also succeeds.
 @idempotent
 @http(method: "DELETE", uri: "/items/{itemId}", code: 204)
 operation DeleteItem { input: DeleteItemInput }
@@ -130,6 +133,7 @@ structure DeleteItemInput {
 }
 
 @readonly
+@documentation("Lists items in identifier order with opaque pagination tokens.")
 @paginated(inputToken: "nextToken", outputToken: "nextToken", pageSize: "maxResults", items: "items")
 @http(method: "GET", uri: "/items", code: 200)
 operation ListItems {
@@ -158,6 +162,7 @@ enum ResourceType {
 }
 
 @error("client")
+@documentation("The requested item does not exist.")
 @httpError(404)
 structure ResourceNotFoundException {
     @required
@@ -169,6 +174,7 @@ structure ResourceNotFoundException {
 }
 
 @error("client")
+@documentation("A client token was reused with different item fields.")
 @httpError(409)
 structure ConflictException {
     @required
@@ -180,6 +186,7 @@ structure ConflictException {
 }
 
 @error("client")
+@documentation("The in-memory item or create-receipt limit was reached.")
 @httpError(402)
 structure ServiceQuotaExceededException {
     @required
