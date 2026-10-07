@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use super::{create_receipt::CreateReceipt, page_cursor::PageCursor};
-use crate::contract::model::ItemDetails;
+use crate::my_service::ItemDetails;
 
 #[derive(Default)]
 pub(super) struct State {

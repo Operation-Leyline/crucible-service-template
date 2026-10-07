@@ -7,7 +7,7 @@ edition = "2024"
 sources = ["../smithy/model"]
 
 [dependencies]
-crucible.workspace = true
+crucible-server-runtime-rust.workspace = true
 service-model = { path = "../smithy" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
 uuid = { version = "1", features = ["v4"] }

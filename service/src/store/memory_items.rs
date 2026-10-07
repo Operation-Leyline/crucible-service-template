@@ -1,3 +1,4 @@
+use crucible_server_runtime_rust::Result;
 use std::ops::Bound::{Excluded, Unbounded};
 use std::sync::{Mutex, MutexGuard};
 use std::time::{Duration, Instant};
@@ -5,7 +6,11 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 use super::{create_receipt::CreateReceipt, page_cursor::PageCursor, state::State};
-use crate::contract::{errors, model};
+use crate::my_service::{
+    ConflictException, ItemDetails, ListItemsOutput, ResourceNotFoundException, ResourceType,
+    ServiceQuotaExceededException, ValidationException, ValidationExceptionField,
+    ValidationExceptionReason,
+};
 
 const MAX_ITEMS: usize = 1_000;
 const MAX_RECEIPTS: usize = 10_000;
@@ -20,10 +25,10 @@ pub struct MemoryItems {
 }
 
 impl MemoryItems {
-    fn lock(&self) -> crucible::Result<MutexGuard<'_, State>> {
+    fn lock(&self) -> Result<MutexGuard<'_, State>> {
         self.state
             .lock()
-            .map_err(|_| crucible::Error::internal("item store lock poisoned"))
+            .map_err(|_| crucible_server_runtime_rust::Error::internal("item store lock poisoned"))
     }
 
     pub fn create(
@@ -31,7 +36,7 @@ impl MemoryItems {
         name: String,
         description: Option<String>,
         client_token: Option<String>,
-    ) -> crucible::Result<model::ItemDetails> {
+    ) -> Result<ItemDetails> {
         let token = client_token.ok_or_else(|| {
             invalid(
                 "clientToken",
@@ -43,24 +48,24 @@ impl MemoryItems {
         state.receipts.retain(|_, receipt| receipt.expires > now);
         if let Some(receipt) = state.receipts.get(&token) {
             if receipt.name != name || receipt.description != description {
-                return Err(errors::ConflictException {
+                return Err(ConflictException {
                     message: "This clientToken was already used with different item fields.".into(),
                     resource_id: receipt.item.item_id.clone(),
-                    resource_type: model::ResourceType::Item,
+                    resource_type: ResourceType::Item,
                 }
                 .into());
             }
             return Ok(receipt.item.clone());
         }
         if state.items.len() >= MAX_ITEMS || state.receipts.len() >= MAX_RECEIPTS {
-            return Err(errors::ServiceQuotaExceededException {
+            return Err(ServiceQuotaExceededException {
                 message: "The local example's item or create-receipt limit has been reached."
                     .into(),
-                resource_type: model::ResourceType::Item,
+                resource_type: ResourceType::Item,
             }
             .into());
         }
-        let item = model::ItemDetails {
+        let item = ItemDetails {
             item_id: Uuid::new_v4().to_string(),
             name: name.clone(),
             description: description.clone(),
@@ -78,7 +83,7 @@ impl MemoryItems {
         Ok(item)
     }
 
-    pub fn get(&self, id: &str) -> crucible::Result<model::ItemDetails> {
+    pub fn get(&self, id: &str) -> Result<ItemDetails> {
         self.lock()?
             .items
             .get(id)
@@ -91,7 +96,7 @@ impl MemoryItems {
         id: &str,
         name: String,
         description: Option<String>,
-    ) -> crucible::Result<model::ItemDetails> {
+    ) -> Result<ItemDetails> {
         let mut state = self.lock()?;
         let item = state.items.get_mut(id).ok_or_else(|| missing(id))?;
         item.name = name;
@@ -99,17 +104,13 @@ impl MemoryItems {
         Ok(item.clone())
     }
 
-    pub fn delete(&self, id: &str) -> crucible::Result<()> {
+    pub fn delete(&self, id: &str) -> Result<()> {
         // Repeated deletes have the same effect and remain safe to retry.
         self.lock()?.items.remove(id);
         Ok(())
     }
 
-    pub fn list(
-        &self,
-        token: Option<&str>,
-        limit: usize,
-    ) -> crucible::Result<model::ListItemsOutput> {
+    pub fn list(&self, token: Option<&str>, limit: usize) -> Result<ListItemsOutput> {
         let mut state = self.lock()?;
         let now = Instant::now();
         state.cursors.retain(|_, cursor| cursor.expires > now);
@@ -160,24 +161,24 @@ impl MemoryItems {
         } else {
             None
         };
-        Ok(model::ListItemsOutput { items, next_token })
+        Ok(ListItemsOutput { items, next_token })
     }
 }
 
-fn missing(id: &str) -> crucible::Error {
-    errors::ResourceNotFoundException {
+fn missing(id: &str) -> crucible_server_runtime_rust::Error {
+    ResourceNotFoundException {
         message: "The item does not exist.".into(),
         resource_id: id.into(),
-        resource_type: model::ResourceType::Item,
+        resource_type: ResourceType::Item,
     }
     .into()
 }
 
-fn invalid(field: &str, message: &str) -> crucible::Error {
-    errors::ValidationException {
+fn invalid(field: &str, message: &str) -> crucible_server_runtime_rust::Error {
+    ValidationException {
         message: message.into(),
-        reason: model::ValidationExceptionReason::FieldValidationFailed,
-        field_list: Some(vec![model::ValidationExceptionField {
+        reason: ValidationExceptionReason::FieldValidationFailed,
+        field_list: Some(vec![ValidationExceptionField {
             name: field.into(),
             message: message.into(),
         }]),
@@ -192,7 +193,7 @@ mod tests {
     use std::time::{Duration, Instant};
 
     use super::MemoryItems;
-    use crate::contract::errors;
+    use crate::my_service::ValidationException;
 
     #[test]
     fn concurrent_create_retries_have_one_result() {
@@ -238,7 +239,7 @@ mod tests {
             .unwrap()
             .expires = Instant::now() - Duration::from_secs(1);
         let error = store.list(Some(&token), 1).unwrap_err();
-        let validation = error.downcast_ref::<errors::ValidationException>().unwrap();
+        let validation = error.downcast_ref::<ValidationException>().unwrap();
         assert_eq!(validation.field_list.as_ref().unwrap()[0].name, "nextToken");
     }
 }

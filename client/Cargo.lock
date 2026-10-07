@@ -212,7 +212,7 @@ checksum = "217698eaf96b4a3f0bc4f3662aaa55bdf913cd54d7204591faa790070c6d0853"
 [[package]]
 name = "crucible-client-runtime-rust"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=5d81e919240245d933e7f819806117cdc1d407f3#5d81e919240245d933e7f819806117cdc1d407f3"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=b5b10da90f687777ff94b2808ac048ff29ac6c32#b5b10da90f687777ff94b2808ac048ff29ac6c32"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -245,7 +245,7 @@ dependencies = [
 [[package]]
 name = "crucible-wire"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=5d81e919240245d933e7f819806117cdc1d407f3#5d81e919240245d933e7f819806117cdc1d407f3"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=b5b10da90f687777ff94b2808ac048ff29ac6c32#b5b10da90f687777ff94b2808ac048ff29ac6c32"
 dependencies = [
  "base64 0.22.1",
  "bigdecimal",

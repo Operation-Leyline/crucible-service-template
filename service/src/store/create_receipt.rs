@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use crate::contract::model::ItemDetails;
+use crate::my_service::ItemDetails;
 
 pub(super) struct CreateReceipt {
     pub name: String,

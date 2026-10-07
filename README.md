@@ -16,7 +16,6 @@ smithy/
   src/lib.rs              # Empty Cargo package scaffold
 service/
   build.rs                # Generate server bindings from the published model
-  src/contract.rs         # Include generated models, traits, and registry
   src/                    # Handwritten handlers and store
   requests.http           # RustRover HTTP examples
   tools/smoke.py          # HTTP smoke check
@@ -70,7 +69,7 @@ Other Rust applications can use the same SDK by adding a path dependency on the 
 service-sdk-rust = { path = "../target/rust-sdk" }
 ```
 
-The `service-model` package compiles `smithy/model/` once and publishes its `model.json` and named SDK artifacts through Cargo build metadata. The Rust artifact includes its Cargo manifest and runtime dependency; applications consume that crate normally. The service generates its own server bindings from the same model, directly in its local `contract` module. Editing the model regenerates both SDKs on the next build. Commit the Smithy sources, generation recipes, and examples. Generated Rust and Java sources stay under ignored `target/` directories and are not committed.
+The `service-model` package compiles `smithy/model/` once and publishes its `model.json` and named SDK artifacts through Cargo build metadata. The Rust artifact includes its Cargo manifest and runtime dependency; applications consume that crate normally. The service generates its own server bindings from the same model, directly in its generated `my_service` namespace. Editing the model regenerates both SDKs on the next build. Commit the Smithy sources, generation recipes, and examples. Generated Rust and Java sources stay under ignored `target/` directories and are not committed.
 
 ## Generating server bindings in the service crate
 
@@ -79,15 +78,15 @@ The service depends directly on `service-model` and has `crucible-build` as a bu
 ```rust
 // service/build.rs
 fn main() {
-    crucible_build::service("service_model")
+    crucible_build::rust_service("service_model")
         .policy("../crucible.toml")
         .generate();
 }
 ```
 
-`service/src/contract.rs` contains `crucible::include_service!();`, and `main.rs` declares `mod contract;`. This generates request/response models, modeled errors, operation traits, and operation registration inside the service crate. Handlers import `crate::contract` as usual; no separate server-contract crate is needed. The helper reads the model's published AST without compiling Smithy again.
+`service/src/main.rs` calls `crucible_server_runtime_rust::include_service!();` at crate root. For Smithy `MyService`, this declares `pub mod my_service`. This generates request/response models, modeled errors, operation traits, and operation registration inside the service crate. Handlers import `crate::my_service::{GetItemInput, GetItemOutput, GetItemOperation, ResourceNotFoundException}` directly; no separate server-contract crate is needed. The helper reads the model's published AST without compiling Smithy again.
 
-A server that owns its sources can instead call `crucible_build::from_smithy("smithy").policy("crucible.toml").generate()` with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
+A server that owns its sources can instead call `crucible_build::rust_service_from_smithy("smithy").policy("crucible.toml").generate()` with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
 
 ## Generating both SDK packages
 
@@ -131,7 +130,7 @@ model.swift_client("swift")
 
 All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings.
 
-A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/5d81e919240245d933e7f819806117cdc1d407f3/docs/build-outputs.md) for the complete feature list, output settings, and examples.
+A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/b5b10da90f687777ff94b2808ac048ff29ac6c32/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
 ## Running the Java client with Gradle
 
@@ -184,7 +183,7 @@ All handlers share one store. Items, create receipts, and cursors disappear when
 
 `smithy/model/service.smithy` defines the resource, HTTP bindings, constraints, pagination, and exceptions. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
 
-Edit the model and implement the generated traits. `smithy/build.rs` compiles and validates the model, then exports complete Rust and Java SDK packages; `service/build.rs` generates server bindings for `service/src/contract.rs`. Smithy editor metadata identifies `smithy/model/` as the source directory; generated output stays under the root `target/` directory.
+Edit the model and implement the generated traits. `smithy/build.rs` compiles and validates the model, then exports complete Rust and Java SDK packages; `service/build.rs` generates server bindings for the `my_service` namespace in `service/src/main.rs`. Smithy editor metadata identifies `smithy/model/` as the source directory; generated output stays under the root `target/` directory.
 
 From the repository root, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace` to check the service. Run the same commands with `--manifest-path client/Cargo.toml` to check the independent Rust client after generation. With the server running, `python service/tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
 
