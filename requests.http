@@ -1,2 +1,2 @@
-### Empty service: expect HTTP 404 with UnknownOperation
+### Empty service: expect HTTP 404 with UnknownOperationException
 GET http://127.0.0.1:8080/

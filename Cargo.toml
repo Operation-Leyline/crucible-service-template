@@ -7,8 +7,8 @@ edition = "2024"
 sources = ["smithy"]
 
 [dependencies]
-crucible = { git = "https://github.com/Operation-Leyline/crucible", rev = "20af40c503f2a34f5babc870dcb8cb7c59575a5d", default-features = false, features = ["http"] }
+crucible = { git = "https://github.com/Operation-Leyline/crucible", rev = "da59322f562072df6597bdfd5eabb25aa26917ea", default-features = false, features = ["http"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
 
 [build-dependencies]
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "20af40c503f2a34f5babc870dcb8cb7c59575a5d" }
+crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "da59322f562072df6597bdfd5eabb25aa26917ea" }
