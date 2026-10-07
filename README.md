@@ -1,6 +1,21 @@
 # Crucible service template
 
-A single Rust crate with a Smithy `Item` resource, five working API handlers, and an in-memory backend. Run it, then create an item and read, update, list, or delete it from RustRover.
+A monorepo template with a shared Smithy model in `smithy/` and a Rust service in `service/`. The example has an `Item` resource, five working API handlers, and an in-memory backend. Run it, then create an item and read, update, list, or delete it from RustRover.
+
+```text
+Cargo.toml          # Cargo workspace
+Cargo.lock          # Shared dependency lockfile
+smithy/
+  service.smithy    # API model
+service/
+  Cargo.toml        # Rust service crate
+  build.rs          # Contract generation from ../smithy
+  src/              # Handlers and store
+  requests.http     # RustRover HTTP examples
+  tools/smoke.py    # HTTP smoke check
+```
+
+The root workspace selects `service` by default. Cargo commands work from the repository root or from `service/`, sharing the root lockfile and `target/` directory. Add future Rust crates to the root workspace's `members` list.
 
 ## Starting in RustRover
 
@@ -8,8 +23,8 @@ You need Rust and GitHub read access to the private [Crucible repository](https:
 
 1. Select **Use this template > Create a new repository** on GitHub.
 2. Clone your repository and open it in RustRover.
-3. Let Cargo finish loading, then run `src/main.rs`.
-4. Open `requests.http` and run the requests in order. The create request saves `itemId` for subsequent requests using a [response handler](https://www.jetbrains.com/help/idea/http-response-handling-examples.html).
+3. Let Cargo finish loading, then run `service/src/main.rs`.
+4. Open `service/requests.http` and run the requests in order. The create request saves `itemId` for subsequent requests using a [response handler](https://www.jetbrains.com/help/idea/http-response-handling-examples.html).
 
 The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address.
 
@@ -35,11 +50,11 @@ All handlers share one store. Items, create receipts, and cursors disappear when
 
 ## Changing the example
 
-`smithy/service.smithy` defines the resource, HTTP bindings, constraints, pagination, and exceptions. `src/operations/item/` has one handler per operation. `src/store/` owns state and atomic mutations.
+`smithy/service.smithy` defines the resource, HTTP bindings, constraints, pagination, and exceptions. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
 
-Edit the model and implement the generated traits. `build.rs` validates changes and generates the contract under Cargo's `OUT_DIR`; `src/contract.rs` includes it. Generated output stays under `target`.
+Edit the model and implement the generated traits. `service/build.rs` validates changes and generates the contract under Cargo's `OUT_DIR`; `service/src/contract.rs` includes it. Both the build script and `service/Cargo.toml`'s Smithy editor metadata point to `../smithy`. Generated output stays under the root `target/` directory.
 
-Run `cargo fmt --all`, `cargo clippy --all-targets -- -D warnings`, and `cargo test`. With the server running, `python tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
+From the repository root, run `cargo fmt --all`, `cargo clippy --all-targets -- -D warnings`, and `cargo test`. With the server running, `python service/tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
 
 ## Smithy editor checks
 

@@ -1,4 +1,4 @@
-"""Check the running example over HTTP: python tools/smoke.py [endpoint]."""
+"""Check the running example over HTTP: python service/tools/smoke.py [endpoint] from the repository root."""
 import http.client
 import json
 import sys
