@@ -120,6 +120,17 @@ Crucible compiles Smithy once, publishes `model.json`, and generates both native
 
 Give additional variants distinct artifact names, package coordinates, and output directories. A separate producer module can instead call `crucible_build::model_dependency("service_model")` and generate its SDK from the published model. Its manifest must directly depend on `service-model` so Cargo supplies the model metadata.
 
+Other client languages use the same fluent setup. For Swift, add `swift` to the shared `crucible-build` dependency's features in `Cargo.toml`, then add this call to `smithy/build.rs`:
+
+```rust
+model.swift_client("swift")
+    .package("MyServiceSDK")
+    .version("0.1.0")
+    .generate_into("../target/swift-sdk");
+```
+
+All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/main/docs/sdk-builds.md) for the complete feature list, output settings, and examples.
+
 ## Running the Java client with Gradle
 
 The independent Java application uses Gradle's composite build support:
