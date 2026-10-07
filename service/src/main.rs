@@ -1,4 +1,4 @@
-use service_contract as contract;
+mod contract;
 mod operations;
 mod store;
 

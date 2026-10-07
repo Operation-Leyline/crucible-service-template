@@ -305,7 +305,7 @@ checksum = "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6"
 [[package]]
 name = "crucible"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "async-trait",
  "axum",
@@ -325,7 +325,7 @@ dependencies = [
 [[package]]
 name = "crucible-build"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-codegen",
  "crucible-codegen-rust",
@@ -340,7 +340,7 @@ dependencies = [
 [[package]]
 name = "crucible-client-runtime-rust"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -365,7 +365,7 @@ dependencies = [
 [[package]]
 name = "crucible-codegen"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-codegen-java",
  "crucible-codegen-rust",
@@ -376,7 +376,7 @@ dependencies = [
 [[package]]
 name = "crucible-codegen-common"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-smithy",
  "serde_json",
@@ -385,7 +385,7 @@ dependencies = [
 [[package]]
 name = "crucible-codegen-java"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-codegen-common",
  "crucible-smithy",
@@ -396,7 +396,7 @@ dependencies = [
 [[package]]
 name = "crucible-codegen-rust"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-codegen-common",
  "crucible-smithy",
@@ -407,7 +407,7 @@ dependencies = [
 [[package]]
 name = "crucible-policy"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "crucible-smithy",
  "regex",
@@ -421,7 +421,8 @@ name = "crucible-service"
 version = "0.1.0"
 dependencies = [
  "crucible",
- "service-contract",
+ "crucible-build",
+ "service-model",
  "tokio",
  "uuid",
 ]
@@ -437,7 +438,7 @@ dependencies = [
 [[package]]
 name = "crucible-smithy"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -451,12 +452,12 @@ dependencies = [
 [[package]]
 name = "crucible-traits"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 
 [[package]]
 name = "crucible-wire"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "base64 0.22.1",
  "bigdecimal",
@@ -1511,15 +1512,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "service-contract"
-version = "0.1.0"
-dependencies = [
- "crucible",
- "crucible-build",
- "service-model",
-]
-
-[[package]]
 name = "service-model"
 version = "0.1.0"
 dependencies = [
@@ -1620,7 +1612,7 @@ checksum = "f9395f0f0eee849a9b707b2f06bb92a6a422090e2123bb2ef8e87a0e61892a8e"
 [[package]]
 name = "smithy-tooling"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=2c1526526f8b76744d1c843382973752640d4f9f#2c1526526f8b76744d1c843382973752640d4f9f"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=da6ef22423c1b086b09449c83e290de7c3824218#da6ef22423c1b086b09449c83e290de7c3824218"
 dependencies = [
  "fs2",
  "serde_json",

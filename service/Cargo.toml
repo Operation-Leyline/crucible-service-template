@@ -8,6 +8,9 @@ sources = ["../smithy/model"]
 
 [dependencies]
 crucible.workspace = true
-service-contract = { path = "../service-contract" }
+service-model = { path = "../smithy" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
 uuid = { version = "1", features = ["v4"] }
+
+[build-dependencies]
+crucible-build.workspace = true
