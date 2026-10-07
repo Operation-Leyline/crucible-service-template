@@ -50,7 +50,7 @@ structure ItemDetails {
 
 list ItemList { member: ItemDetails }
 
-/// Creates an item; replaying the same client token returns the original result.
+/// Creates an item; retries with the same token and fields return the original result for eight hours.
 @http(method: "POST", uri: "/items", code: 201)
 operation CreateItem {
     input: CreateItemInput
