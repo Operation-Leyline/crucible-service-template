@@ -3,12 +3,16 @@ fn main() {
         .policy("../crucible.toml")
         .compile();
     model.publish();
-    model.rust_client("rust").generate();
+    model
+        .rust_client("rust")
+        .package("service-sdk-rust")
+        .version("0.1.0")
+        .generate_into("../target/rust-sdk");
     model
         .java_client("java")
         .package("example.myservice")
         .group_id("example")
         .artifact_id("myservice-sdk")
         .version("0.1.0")
-        .generate();
+        .generate_into("../target/java-sdk");
 }

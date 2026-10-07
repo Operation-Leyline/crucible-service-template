@@ -11,16 +11,22 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
     let client = MyServiceClient::new(Config::new(&endpoint));
     let mut existing = Vec::new();
     for index in 0..2 {
-        existing.push(
-            client
-                .create_item(
-                    model::CreateItemInput::builder()
-                        .name(format!("Existing item {index}"))
-                        .build(),
-                )
-                .await?
-                .item,
-        );
+        match client
+            .create_item(
+                model::CreateItemInput::builder()
+                    .name(format!("Existing item {index}"))
+                    .build(),
+            )
+            .await
+        {
+            Ok(created) => existing.push(created.item),
+            Err(error) => {
+                if let Err(cleanup_error) = cleanup(&client, &existing).await {
+                    eprintln!("Seed cleanup failed: {cleanup_error}");
+                }
+                return Err(error.into());
+            }
+        }
     }
 
     let output = Command::new(env!("CARGO_BIN_EXE_crucible-service-client"))
@@ -37,14 +43,8 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
                 )
                 .await,
         );
-        client
-            .delete_item(
-                model::DeleteItemInput::builder()
-                    .item_id(&item.item_id)
-                    .build(),
-            )
-            .await?;
     }
+    let cleanup_result = cleanup(&client, &existing).await;
 
     let output = output?;
     assert!(
@@ -81,5 +81,32 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
         Err(Error::Service(error))
             if matches!(error.error, GetItemError::ResourceNotFoundException(_))
     ));
+    cleanup_result?;
     Ok(())
+}
+
+async fn cleanup(
+    client: &MyServiceClient,
+    items: &[model::ItemDetails],
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut first_error = None;
+    for item in items {
+        if let Err(error) = client
+            .delete_item(
+                model::DeleteItemInput::builder()
+                    .item_id(&item.item_id)
+                    .build(),
+            )
+            .await
+        {
+            eprintln!("Could not delete seeded item {}: {error}", item.item_id);
+            if first_error.is_none() {
+                first_error = Some(error);
+            }
+        }
+    }
+    match first_error {
+        Some(error) => Err(error.into()),
+        None => Ok(()),
+    }
 }

@@ -1,0 +1,2 @@
+examples/java/gradlew text eol=lf
+examples/java/gradlew.bat text eol=crlf

@@ -5,5 +5,8 @@ edition = "2024"
 publish = false
 
 [dependencies]
-service-sdk-rust = { path = "../sdks/rust" }
+service-sdk-rust = { path = "../target/rust-sdk" }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+[workspace]
+resolver = "3"

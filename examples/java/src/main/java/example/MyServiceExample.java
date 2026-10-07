@@ -19,6 +19,7 @@ public final class MyServiceExample {
             .build());
         var itemId = created.item().itemId();
         System.out.println("Created " + itemId);
+        Throwable failure = null;
         try {
             var fetched = client.getItem(GetItemInput.builder().itemId(itemId).build());
             System.out.println("Read: " + fetched.item().name());
@@ -31,9 +32,19 @@ public final class MyServiceExample {
                     System.out.println("Listed: " + item.name() + " (" + item.itemId() + ")");
                 }
             }
+        } catch (RuntimeException | Error error) {
+            failure = error;
+            throw error;
         } finally {
-            client.deleteItem(DeleteItemInput.builder().itemId(itemId).build());
-            System.out.println("Deleted " + itemId);
+            try {
+                client.deleteItem(DeleteItemInput.builder().itemId(itemId).build());
+                System.out.println("Deleted " + itemId);
+            } catch (RuntimeException | Error cleanupError) {
+                if (failure == null) {
+                    throw cleanupError;
+                }
+                failure.addSuppressed(cleanupError);
+            }
         }
     }
 }

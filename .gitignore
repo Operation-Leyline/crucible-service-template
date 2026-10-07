@@ -2,3 +2,7 @@
 /.idea/
 
 /examples/java/target/
+/examples/java/build/
+/examples/java/.gradle/
+/client/target/
+__pycache__/
