@@ -5,5 +5,5 @@ default-members = ["service"]
 resolver = "3"
 
 [workspace.dependencies]
-crucible = { git = "https://github.com/Operation-Leyline/crucible", rev = "23b62e513533cff632187fa2bfe108f61e5c4a66", default-features = false, features = ["http"] }
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "23b62e513533cff632187fa2bfe108f61e5c4a66", features = ["java"] }
+crucible = { git = "https://github.com/Operation-Leyline/crucible", rev = "5d81e919240245d933e7f819806117cdc1d407f3", default-features = false, features = ["http"] }
+crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "5d81e919240245d933e7f819806117cdc1d407f3", features = ["java"] }

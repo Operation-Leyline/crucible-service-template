@@ -43,7 +43,7 @@ jobs:
       - uses: ./crucible-actions/setup-crucible
         id: tooling
         with:
-          crucible-ref: 23b62e513533cff632187fa2bfe108f61e5c4a66
+          crucible-ref: 5d81e919240245d933e7f819806117cdc1d407f3
           token: ${{ steps.app-token.outputs.token }}
       - uses: ./crucible-actions/api-diff
         with:
