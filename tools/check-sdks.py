@@ -77,7 +77,11 @@ def main():
         print("Service, independent Rust SDK consumer, Gradle Java SDK consumer, pagination and cleanup passed")
     finally:
         server.terminate()
-        server.wait(timeout=20)
+        try:
+            server.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait()
     run([sys.executable, "tools/check-sdk-cleanup.py"])
 
 
