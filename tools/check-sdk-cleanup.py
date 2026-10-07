@@ -7,6 +7,7 @@ import subprocess
 import threading
 
 ROOT = Path(__file__).resolve().parents[1]
+COMMAND_TIMEOUT = float(os.environ.get("CRUCIBLE_SDK_COMMAND_TIMEOUT", "600"))
 IDS = [f"00000000-0000-0000-0000-{index:012d}" for index in [1, 2]]
 
 
@@ -55,7 +56,7 @@ class Fixture(BaseHTTPRequestHandler):
             self.respond(204)
 
 
-def check(mode, arguments, primary):
+def check(mode, arguments, primary, *, timeout=COMMAND_TIMEOUT):
     server = ThreadingHTTPServer(("127.0.0.1", 0), Fixture)
     server.mode, server.creates, server.deletes = mode, 0, []
     worker = threading.Thread(target=server.serve_forever, daemon=True)
@@ -66,7 +67,11 @@ def check(mode, arguments, primary):
     if mode == "java":
         command.append(f"--args={endpoint}")
     try:
-        result = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True)
+        try:
+            result = subprocess.run(command, cwd=ROOT, env=environment, text=True,
+                                    capture_output=True, timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError(f"Command timed out after {timeout:g}s: {command}") from error
         output = result.stdout + result.stderr
         if result.returncode == 0 or primary not in output:
             raise RuntimeError(f"Expected original {primary}:\n{output}")

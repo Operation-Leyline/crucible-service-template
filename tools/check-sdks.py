@@ -9,12 +9,17 @@ import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
+COMMAND_TIMEOUT = float(os.environ.get("CRUCIBLE_SDK_COMMAND_TIMEOUT", "600"))
 
 
-def run(arguments, *, capture=False, env=None):
+def run(arguments, *, capture=False, env=None, timeout=COMMAND_TIMEOUT):
     print("Running " + " ".join(map(str, arguments)), flush=True)
-    result = subprocess.run(list(map(str, arguments)), cwd=ROOT, env=env,
-                            text=True, stdout=subprocess.PIPE if capture else None)
+    try:
+        result = subprocess.run(list(map(str, arguments)), cwd=ROOT, env=env,
+                                text=True, stdout=subprocess.PIPE if capture else None,
+                                timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError(f"Command timed out after {timeout:g}s: {arguments}") from error
     if result.returncode:
         raise RuntimeError(f"Command failed ({result.returncode}): {arguments}")
     return result.stdout
@@ -34,6 +39,8 @@ def main():
     for manifest in ["target/rust-sdk/Cargo.toml", "target/java-sdk/build.gradle.kts"]:
         if not (ROOT / manifest).is_file():
             raise RuntimeError(f"Model build did not generate {manifest}")
+    run(["cargo", "fmt", "--all", "--check"])
+    run(["cargo", "fmt", "--manifest-path", "client/Cargo.toml", "--all", "--check"])
     run(["cargo", "test", "--workspace", "--locked"])
     run(["cargo", "test", "--manifest-path", "client/Cargo.toml", "--locked"])
 

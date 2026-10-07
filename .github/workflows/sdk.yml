@@ -29,6 +29,8 @@ jobs:
           repositories: crucible
           permission-contents: read
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
