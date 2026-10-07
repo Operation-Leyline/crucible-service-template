@@ -1,31 +1,45 @@
 # Crucible service template
 
-A single Rust crate with an empty Smithy API and an HTTP server. Add your model and operation handlers here.
+A single Rust crate with a Smithy `Item` resource, five working API handlers, and an in-memory backend. Run it, then create an item and read, update, list, or delete it from RustRover.
 
 ## Starting in RustRover
 
 You need Rust and GitHub read access to the private [Crucible repository](https://github.com/Operation-Leyline/crucible).
 
 1. Select **Use this template > Create a new repository** on GitHub.
-2. Clone your new repository and open it in RustRover.
+2. Clone your repository and open it in RustRover.
 3. Let Cargo finish loading, then run `src/main.rs`.
+4. Open `requests.http` and run the requests in order. The create request saves `itemId` for subsequent requests using a [response handler](https://www.jetbrains.com/help/idea/http-response-handling-examples.html).
 
-The server prints `Listening on http://127.0.0.1:8080`. Open `requests.http` to check it: HTTP 404 with `UnknownOperationException` is expected before you add operations. You can also run `cargo run` in a terminal.
+The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address.
+
 The first build downloads and verifies Smithy's pinned runtime. Later builds reuse its cache; no separate Smithy CLI or Java installation is needed.
 
-## Adding your API
+## Example API
 
-`smithy/service.smithy` declares `example.service#MyService` with no operations.
-The standard validation, internal and unknown-operation exceptions let the empty service start and define the errors your future operations inherit.
-With no operations, requests return the modelled `UnknownOperationException` (404). Invalid input for a declared operation returns `ValidationException` (400), including a structured reason and field details. Unexpected failures use `InternalServerException` (500). Error responses carry `x-request-id`.
+| Operation | Request | Success |
+|---|---|---|
+| CreateItem | `POST /items` | 201, generated item ID and fields |
+| GetItem | `GET /items/{itemId}` | 200, item |
+| UpdateItem | `PUT /items/{itemId}` | 200, updated item |
+| DeleteItem | `DELETE /items/{itemId}` | 204, empty body |
+| ListItems | `GET /items?maxResults=20` | 200, items and optional nextToken |
 
-Edit the namespace and service name, define your operations, and add them to the service's `operations` list.
-Implement the generated operation traits on `Service`. Put service-bound handlers in `src/operations/service/`, one file per operation, and declare their modules in `src/operations/mod.rs`.
+Creation accepts `name`, optional `description`, and `clientToken`. Provide a token when using raw HTTP; generated SDKs can fill it automatically. Repeating an identical create with the same token returns the original result. Changed fields with that token return `ConflictException` (409), including the conflicting item ID. Receipts last eight hours, including after deletion; replaying one does not recreate a deleted item.
 
-`build.rs` validates the model and generates the contract on each model change. `src/contract.rs` includes it from Cargo's `OUT_DIR`.
-The Rust compiler identifies operation traits or fields you need to implement. Generated output stays under `target`; edit the Smithy model and handlers instead.
+Update replaces the editable fields. Omitting `description` clears it. Get and update return `ResourceNotFoundException` (404) for a missing item. Delete succeeds even if the item is already absent.
 
-You can rename the package in `Cargo.toml` to match your repository. `CRUCIBLE_ADDR` changes the listening address.
+List returns at most `maxResults` items (default 20, maximum 100), ordered by immutable ID. Pass `nextToken` to continue; page size can change between requests. Tokens are opaque references, expire after 15 minutes, and become invalid on restart. At most 1,024 cursors are retained; issuing another evicts the oldest. Invalid tokens return `ValidationException` (400).
+
+All handlers share one store. Items, create receipts, and cursors disappear when the process stops. The example permits 1,000 items and 10,000 unexpired create receipts; reaching either limit returns `ServiceQuotaExceededException` (402). It has no authentication and is intended for local learning. Replace the store with durable storage before running multiple instances.
+
+## Changing the example
+
+`smithy/service.smithy` defines the resource, HTTP bindings, constraints, pagination, and exceptions. `src/operations/item/` has one handler per operation. `src/store/` owns state and atomic mutations.
+
+Edit the model and implement the generated traits. `build.rs` validates changes and generates the contract under Cargo's `OUT_DIR`; `src/contract.rs` includes it. Generated output stays under `target`.
+
+Run `cargo fmt --all`, `cargo clippy --all-targets -- -D warnings`, and `cargo test`. With the server running, `python tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
 
 ## Smithy editor checks
 
@@ -39,7 +53,4 @@ Matching Crucible releases will include the plugin as a release asset.
 
 ## Dependency versions
 
-Both Crucible dependencies pin the same tested commit from [Crucible PR #71](https://github.com/Operation-Leyline/crucible/pull/71), which supplies the shared exception models and unmatched-route mapping.
-Crucible 0.3.0 is not released yet. After a release containing these exceptions, update both dependencies to its matching version tag deliberately.
-The default compiler and prelude are Smithy 1.74.0; `Cargo.lock` is committed.
-See [Crucible's quick start](https://github.com/Operation-Leyline/crucible/blob/da59322f562072df6597bdfd5eabb25aa26917ea/docs/quickstart.md) for selecting another Smithy version and offline builds.
+Both Crucible dependencies pin the same immutable commit containing the shared exception models, merged in [Crucible PR #71](https://github.com/Operation-Leyline/crucible/pull/71). Update both pins together when adopting a release. `Cargo.lock` is committed; the default compiler and prelude are Smithy 1.74.0.

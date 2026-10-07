@@ -1,5 +1,6 @@
 mod contract;
 mod operations;
+mod store;
 
 use std::sync::Arc;
 
@@ -8,7 +9,7 @@ use operations::Service;
 
 #[tokio::main]
 async fn main() -> Result<(), crucible::host::BoxError> {
-    let service = Crucible::builder(contract::operations(Arc::new(Service)))
+    let service = Crucible::builder(contract::operations(Arc::new(Service::default())))
         .protocol(JsonProtocol)
         .build()?;
     let address = std::env::var("CRUCIBLE_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".into());

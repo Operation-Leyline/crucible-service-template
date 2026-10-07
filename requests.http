@@ -1,2 +1,62 @@
-### Empty service: expect HTTP 404 with UnknownOperationException
-GET http://127.0.0.1:8080/
+@host = http://127.0.0.1:8080
+
+### Create an item and save its generated ID
+POST {{host}}/items
+Content-Type: application/json
+
+{
+  "name": "First item",
+  "description": "Created from RustRover",
+  "clientToken": "rustrover-first-item"
+}
+
+> {%
+    client.test("Created", function () { client.assert(response.status === 201); });
+    client.global.set("itemId", response.body.item.itemId);
+%}
+
+### Read the same item
+GET {{host}}/items/{{itemId}}
+
+### Replace the item's fields
+PUT {{host}}/items/{{itemId}}
+Content-Type: application/json
+
+{
+  "name": "Updated item",
+  "description": "The service remembers this change"
+}
+
+### Create a second item for pagination
+POST {{host}}/items
+Content-Type: application/json
+
+{
+  "name": "Second item",
+  "clientToken": "rustrover-second-item"
+}
+
+### List one item and save the next page token
+GET {{host}}/items?maxResults=1
+
+> {%
+    client.global.set("nextToken", response.body.nextToken);
+%}
+
+### Fetch the next page
+GET {{host}}/items?maxResults=1&nextToken={{nextToken}}
+
+### Delete the first item (204); repeating this request is safe
+DELETE {{host}}/items/{{itemId}}
+
+### Read the deleted item: ResourceNotFoundException (404)
+GET {{host}}/items/{{itemId}}
+
+### Invalid input: ValidationException (400)
+POST {{host}}/items
+Content-Type: application/json
+
+{"name": "", "clientToken": "invalid-example"}
+
+### Unmatched route: UnknownOperationException (404)
+GET {{host}}/missing
