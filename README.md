@@ -20,7 +20,7 @@ service/
   requests.http           # RustRover HTTP examples
   tools/smoke.py          # HTTP smoke check
 client/                   # Independent Cargo app consuming target/rust-sdk
-examples/java/            # Independent Gradle app consuming target/java-sdk
+examples/kotlin/          # Independent Kotlin Gradle app consuming target/java-sdk
 ```
 
 After the first root build, attach `client/Cargo.toml` as another Cargo project in RustRover to edit and run the independent Rust application.
@@ -132,26 +132,26 @@ All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu,
 
 A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f7544a8b4802ec2409ce1c64eeba9527fa55992d/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
-## Running the Java client with Gradle
+## Running the Kotlin client with Gradle
 
-The independent Java application uses Gradle's composite build support:
+The independent Kotlin application consumes the generated Java SDK through Gradle's composite build support:
 
 ```kotlin
-// examples/java/settings.gradle.kts
+// examples/kotlin/settings.gradle.kts
 includeBuild("../../target/java-sdk")
 ```
 
-It declares the ordinary dependency `implementation("example:myservice-sdk:0.1.0")`. Gradle substitutes the generated library project and builds its JAR. Neither the Java application's source nor its Gradle build contains generation or runtime plumbing.
+It applies the Kotlin JVM plugin and declares the ordinary dependency `implementation("example:myservice-sdk:0.1.0")`. Gradle substitutes the generated library project and builds its JAR. Kotlin calls the SDK directly, using its `Consumer<Builder>` overloads as trailing lambdas such as `client.getItem { it.itemId(itemId) }`. Neither the Kotlin application's source nor its Gradle build contains generation or runtime plumbing.
 
-You need JDK 17 or newer; the generated SDK and example target Java 17. The official Gradle 9.8.0 wrapper is checked in with the distribution SHA-256 pinned, so no separate Gradle installation is needed. Start the service, then run from the repository root:
+You need JDK 17 or newer; the generated SDK and example target Java 17. The official Gradle 9.8.0 wrapper is checked in with the distribution SHA-256 pinned, and Gradle downloads the Kotlin plugin, so no separate Gradle or Kotlin installation is needed. Start the service, then run from the repository root:
 
 ```sh
-./examples/java/gradlew -p examples/java run
+./examples/kotlin/gradlew -p examples/kotlin run
 ```
 
-On Windows, use `examples\java\gradlew.bat -p examples/java run`. Pass another endpoint with `"--args=http://127.0.0.1:9000"`. The example creates, reads, updates, paginates, and deletes its item. Cleanup preserves an earlier failure if deletion also fails.
+On Windows, use `examples\kotlin\gradlew.bat -p examples/kotlin run`. Pass another endpoint with `"--args=http://127.0.0.1:9000"`. The example creates, reads, updates, paginates, and deletes its item. Cleanup preserves an earlier failure if deletion also fails.
 
-The generated SDK uses `java-library` and includes a sources JAR and publication metadata. Other Gradle projects can use the same composite build or consume the published coordinates from your artifact repository.
+The generated SDK uses `java-library` and includes a sources JAR and publication metadata. Other Gradle projects, Java or Kotlin, can use the same composite build or consume the published coordinates from your artifact repository.
 
 With the local service running, verify the example's pagination and cleanup with:
 

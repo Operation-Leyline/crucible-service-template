@@ -1,8 +1,8 @@
 /target/
 /.idea/
 
-/examples/java/target/
-/examples/java/build/
-/examples/java/.gradle/
+/examples/kotlin/target/
+/examples/kotlin/build/
+/examples/kotlin/.gradle/
 /client/target/
 __pycache__/

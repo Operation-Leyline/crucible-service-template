@@ -41,7 +41,7 @@ class Fixture(BaseHTTPRequestHandler):
 
     def do_GET(self):
         item_id = self.path.rsplit("/", 1)[-1]
-        if self.server.mode == "java" or (self.server.mode == "cleanup-all" and item_id == IDS[0]):
+        if self.server.mode == "kotlin" or (self.server.mode == "cleanup-all" and item_id == IDS[0]):
             self.respond(404, {"__type": "ResourceNotFoundException", "message": "PRIMARY_READ_FAILURE",
                               "resourceId": item_id, "resourceType": "Item"})
         else:
@@ -50,7 +50,7 @@ class Fixture(BaseHTTPRequestHandler):
     def do_DELETE(self):
         item_id = self.path.rsplit("/", 1)[-1]
         self.server.deletes.append(item_id)
-        if self.server.mode == "java" or (self.server.mode == "cleanup-all" and item_id == IDS[0]):
+        if self.server.mode == "kotlin" or (self.server.mode == "cleanup-all" and item_id == IDS[0]):
             self.error("SECONDARY_DELETE_FAILURE")
         else:
             self.respond(204)
@@ -64,7 +64,7 @@ def check(mode, arguments, primary, *, timeout=COMMAND_TIMEOUT):
     endpoint = f"http://127.0.0.1:{server.server_port}"
     environment = dict(os.environ, CRUCIBLE_ENDPOINT=endpoint)
     command = list(map(str, arguments))
-    if mode == "java":
+    if mode == "kotlin":
         command.append(f"--args={endpoint}")
     try:
         try:
@@ -78,8 +78,8 @@ def check(mode, arguments, primary, *, timeout=COMMAND_TIMEOUT):
         expected = IDS if mode == "cleanup-all" else IDS[:1]
         if server.deletes != expected:
             raise RuntimeError(f"Cleanup stopped early: {server.deletes}, expected {expected}\n{output}")
-        if mode == "java" and ("Suppressed:" not in output or "SECONDARY_DELETE_FAILURE" not in output):
-            raise RuntimeError(f"Java cleanup replaced the original failure:\n{output}")
+        if mode == "kotlin" and ("Suppressed:" not in output or "SECONDARY_DELETE_FAILURE" not in output):
+            raise RuntimeError(f"Kotlin cleanup replaced the original failure:\n{output}")
         print(f"Passed cleanup fault injection: {mode}", flush=True)
     finally:
         server.shutdown()
@@ -91,8 +91,8 @@ def main():
     rust = ["cargo", "test", "--manifest-path", "client/Cargo.toml", "--locked", "--test", "example", "--", "--ignored"]
     check("partial-seed", rust, "PRIMARY_CREATE_FAILURE")
     check("cleanup-all", rust, "PRIMARY_CHILD_FAILURE")
-    wrapper = ROOT / "examples/java" / ("gradlew.bat" if os.name == "nt" else "gradlew")
-    check("java", [wrapper, "--no-daemon", "--max-workers=1", "-p", "examples/java", "run"], "PRIMARY_READ_FAILURE")
+    wrapper = ROOT / "examples/kotlin" / ("gradlew.bat" if os.name == "nt" else "gradlew")
+    check("kotlin", [wrapper, "--no-daemon", "--max-workers=1", "-p", "examples/kotlin", "run"], "PRIMARY_READ_FAILURE")
 
 
 if __name__ == "__main__":

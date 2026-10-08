@@ -1,2 +1,2 @@
-examples/java/gradlew text eol=lf
-examples/java/gradlew.bat text eol=crlf
+examples/kotlin/gradlew text eol=lf
+examples/kotlin/gradlew.bat text eol=crlf

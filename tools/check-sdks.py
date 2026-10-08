@@ -64,17 +64,17 @@ def main():
         run([sys.executable, "service/tools/smoke.py", endpoint])
         run(["cargo", "test", "--manifest-path", "client/Cargo.toml", "--locked",
              "--test", "example", "--", "--ignored"], env=environment)
-        wrapper = ROOT / "examples/java" / ("gradlew.bat" if os.name == "nt" else "gradlew")
-        output = run([wrapper, "--no-daemon", "--max-workers=1", "-p", "examples/java",
+        wrapper = ROOT / "examples/kotlin" / ("gradlew.bat" if os.name == "nt" else "gradlew")
+        output = run([wrapper, "--no-daemon", "--max-workers=1", "-p", "examples/kotlin",
                       "clean", "run", f"--args={endpoint}"], capture=True)
         print(output)
         for expected in ["Created ", "Read: ", "Updated: ", "Listed: ", "Deleted "]:
             if expected not in output:
-                raise RuntimeError(f"Java example did not report {expected!r}")
+                raise RuntimeError(f"Kotlin example did not report {expected!r}")
         with urllib.request.urlopen(endpoint + "/items", timeout=10) as response:
             if json.load(response)["items"]:
                 raise RuntimeError("SDK examples left temporary items behind")
-        print("Service, independent Rust SDK consumer, Gradle Java SDK consumer, pagination and cleanup passed")
+        print("Service, independent Rust SDK consumer, Gradle Kotlin consumer of the Java SDK, pagination and cleanup passed")
     finally:
         server.terminate()
         try:
