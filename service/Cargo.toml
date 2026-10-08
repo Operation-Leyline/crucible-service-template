@@ -3,9 +3,6 @@ name = "crucible-service"
 version = "0.1.0"
 edition = "2024"
 
-[package.metadata.smithy]
-sources = ["../smithy/model"]
-
 [dependencies]
 crucible-server-runtime-rust.workspace = true
 service-model = { path = "../smithy" }
