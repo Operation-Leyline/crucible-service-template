@@ -9,6 +9,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "ahash"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
+dependencies = [
+ "cfg-if",
+ "getrandom 0.3.4",
+ "once_cell",
+ "serde",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -136,6 +150,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit-set"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
+
+[[package]]
 name = "bitflags"
 version = "2.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -151,10 +180,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "borrow-or-share"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc0b364ead1874514c8c2855ab558056ebfeb775653e7ae45ff72f28f8f3166c"
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
+
+[[package]]
+name = "bytecount"
+version = "0.6.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "175812e0be2bccb6abe50bb8d566126198344f707e304f45c648fd8f2cc0365e"
 
 [[package]]
 name = "bytes"
@@ -268,32 +309,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6"
 
 [[package]]
-name = "crucible-server-runtime-rust"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
-dependencies = [
- "async-trait",
- "axum",
- "chrono",
- "crucible-wire",
- "futures-util",
- "http-body-util",
- "regex",
- "serde",
- "serde_json",
- "tokio",
- "tower",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "crucible-build"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "crucible-codegen",
  "crucible-codegen-rust",
+ "crucible-lang",
  "crucible-policy",
  "crucible-smithy",
  "crucible-traits",
@@ -304,8 +326,8 @@ dependencies = [
 
 [[package]]
 name = "crucible-codegen"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "crucible-codegen-java",
  "crucible-codegen-rust",
@@ -315,17 +337,21 @@ dependencies = [
 
 [[package]]
 name = "crucible-codegen-common"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
+ "base64 0.22.1",
  "crucible-smithy",
+ "crucible-wire",
+ "pulldown-cmark",
+ "serde",
  "serde_json",
 ]
 
 [[package]]
 name = "crucible-codegen-java"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "crucible-codegen-common",
  "crucible-smithy",
@@ -335,8 +361,8 @@ dependencies = [
 
 [[package]]
 name = "crucible-codegen-rust"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "crucible-codegen-common",
  "crucible-smithy",
@@ -347,9 +373,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "crucible-lang"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
+dependencies = [
+ "crucible-smithy",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
 name = "crucible-policy"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "crucible-smithy",
  "regex",
@@ -359,11 +396,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "crucible-server-runtime-rust"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "crucible-wire",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "regex",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "crucible-service"
 version = "0.1.0"
 dependencies = [
- "crucible-server-runtime-rust",
  "crucible-build",
+ "crucible-server-runtime-rust",
  "service-model",
  "tokio",
  "uuid",
@@ -371,13 +431,14 @@ dependencies = [
 
 [[package]]
 name = "crucible-smithy"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "base64 0.22.1",
  "chrono",
  "indexmap",
  "jmespath",
+ "regex",
  "serde",
  "serde_json",
  "thiserror",
@@ -385,13 +446,13 @@ dependencies = [
 
 [[package]]
 name = "crucible-traits"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 
 [[package]]
 name = "crucible-wire"
-version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+version = "0.4.0"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "base64 0.22.1",
  "bigdecimal",
@@ -400,6 +461,7 @@ dependencies = [
  "ciborium",
  "futures-core",
  "futures-util",
+ "jsonschema",
  "regex",
  "serde",
  "serde_json",
@@ -460,6 +522,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "email_address"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e079f19b08ca6239f47f8ba8509c11cf3ea30095831f7fed61441475edd8c449"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -473,6 +544,17 @@ checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "fancy-regex"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e24cb5a94bcae1e5408b0effca5cd7172ea3c5755049c5f3af4cd283a165298"
+dependencies = [
+ "bit-set",
+ "regex-automata",
+ "regex-syntax",
 ]
 
 [[package]]
@@ -498,12 +580,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "fluent-uri"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1918b65d96df47d3591bed19c5cca17e3fa5d0707318e4b5ef2eae01764df7e5"
+dependencies = [
+ "borrow-or-share",
+ "ref-cast",
+ "serde",
+]
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fraction"
+version = "0.15.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e076045bb43dac435333ed5f04caf35c7463631d0dae2deb2638d94dd0a5b872"
+dependencies = [
+ "lazy_static",
+ "num",
 ]
 
 [[package]]
@@ -575,13 +678,25 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "r-efi 5.3.0",
+ "wasip2",
+]
+
+[[package]]
+name = "getrandom"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099"
 dependencies = [
  "cfg-if",
  "libc",
- "r-efi",
+ "r-efi 6.0.0",
  "rand_core",
 ]
 
@@ -850,6 +965,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "jsonschema"
+version = "0.26.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26a960f0c34d5423581d858ce94815cc11f0171b09939409097969ed269ede1b"
+dependencies = [
+ "ahash",
+ "base64 0.22.1",
+ "bytecount",
+ "email_address",
+ "fancy-regex",
+ "fraction",
+ "idna",
+ "itoa",
+ "num-cmp",
+ "once_cell",
+ "percent-encoding",
+ "referencing",
+ "regex-syntax",
+ "serde",
+ "serde_json",
+ "uuid-simd",
+]
+
+[[package]]
+name = "lazy_static"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20870f649af7073d53e38067b2a84312175d56ea15217e1b15bc83506ec50afb"
+
+[[package]]
 name = "libc"
 version = "0.2.190"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -919,6 +1064,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "num"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35bd024e8b2ff75562e5f34e7f4905839deb4b22955ef5e73d2fea1b9813cb23"
+dependencies = [
+ "num-bigint",
+ "num-complex",
+ "num-integer",
+ "num-iter",
+ "num-rational",
+ "num-traits",
+]
+
+[[package]]
 name = "num-bigint"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -929,11 +1088,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-cmp"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63335b2e2c34fae2fb0aa2cecfd9f0832a1e24b3b32ecec612c3426d46dc8aaa"
+
+[[package]]
+name = "num-complex"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ce2d95d4b3734dc35aa2f45e1aa22cd416814592a4f9d9205e11affd5b8e10b"
 dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "num-iter"
+version = "0.1.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c92800bd69a1eac91786bcfe9da64a897eb72911b8dc3095decbd07429e8048b"
+dependencies = [
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f83d14da390562dca69fc84082e73e548e1ad308d24accdedd2720017cb37824"
+dependencies = [
+ "num-bigint",
+ "num-integer",
  "num-traits",
 ]
 
@@ -951,6 +1146,12 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+
+[[package]]
+name = "outref"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a80800c0488c3a21695ea981a54918fbb37abf04f4d0720c453632255e2ff0e"
 
 [[package]]
 name = "percent-encoding"
@@ -983,6 +1184,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulldown-cmark"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9f068eba8e7071c5f9511831b44f32c740d5adf574e990f946ddb53db2f314e"
+dependencies = [
+ "bitflags",
+ "memchr",
+ "pulldown-cmark-escape",
+ "unicase",
+]
+
+[[package]]
+name = "pulldown-cmark-escape"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -990,6 +1209,12 @@ checksum = "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "r-efi"
+version = "5.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "r-efi"
@@ -1013,6 +1238,39 @@ name = "rand_core"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
+
+[[package]]
+name = "ref-cast"
+version = "1.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e440fb4e4b4147295338efb76001ab9e4efc0e5839df2c47fc5ac2381d365c3"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92ecd8964f8453721699a1ed72037b0db49ce2f5a5138486ee89bed6f67cdf3a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.6",
+]
+
+[[package]]
+name = "referencing"
+version = "0.26.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb8e15af8558cb157432dd3d88c1d1e982d0a5755cf80ce593b6499260aebc49"
+dependencies = [
+ "ahash",
+ "fluent-uri",
+ "once_cell",
+ "percent-encoding",
+ "serde_json",
+]
 
 [[package]]
 name = "regex"
@@ -1264,7 +1522,7 @@ checksum = "f9395f0f0eee849a9b707b2f06bb92a6a422090e2123bb2ef8e87a0e61892a8e"
 [[package]]
 name = "smithy-tooling"
 version = "0.3.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=f7544a8b4802ec2409ce1c64eeba9527fa55992d#f7544a8b4802ec2409ce1c64eeba9527fa55992d"
+source = "git+https://github.com/Operation-Leyline/crucible?rev=11af315e37e5acdaf31d9508e82b58865697aaa1#11af315e37e5acdaf31d9508e82b58865697aaa1"
 dependencies = [
  "fs2",
  "serde_json",
@@ -1512,6 +1770,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20"
 
 [[package]]
+name = "unicase"
+version = "2.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357cc3acc6a036009fd6c973ed009037c732d60d0b4f6c673e9041497482a28f"
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1588,16 +1852,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "uuid-simd"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23b082222b4f6619906941c17eb2297fff4c2fb96cb60164170522942a200bd8"
+dependencies = [
+ "outref",
+ "uuid",
+ "vsimd",
+]
+
+[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
+name = "vsimd"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c3082ca00d5a5ef149bb8b555a72ae84c9c59f7250f013ac822ac2e49b19c64"
+
+[[package]]
 name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
+
+[[package]]
+name = "wasip2"
+version = "1.0.4+wasi-0.2.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b67efb37e106e55ce722a510d6b5f9c17f083e5fc79afc2badeb12cc313d9487"
+dependencies = [
+ "wit-bindgen",
+]
 
 [[package]]
 name = "wasm-bindgen"
@@ -1824,6 +2114,12 @@ checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "wit-bindgen"
+version = "0.57.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
 name = "writeable"

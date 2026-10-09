@@ -1,9 +1,9 @@
 [workspace]
-members = ["smithy", "service"]
+members = ["model", "service"]
 exclude = ["client", "target/rust-sdk"]
 default-members = ["service"]
 resolver = "3"
 
 [workspace.dependencies]
-crucible-server-runtime-rust = { git = "https://github.com/Operation-Leyline/crucible", rev = "f7544a8b4802ec2409ce1c64eeba9527fa55992d", default-features = false, features = ["http"] }
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "f7544a8b4802ec2409ce1c64eeba9527fa55992d", features = ["java"] }
+crucible-server-runtime-rust = { git = "https://github.com/Operation-Leyline/crucible", rev = "11af315e37e5acdaf31d9508e82b58865697aaa1", default-features = false, features = ["http"] }
+crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "11af315e37e5acdaf31d9508e82b58865697aaa1", features = ["java"] }

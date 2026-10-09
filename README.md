@@ -1,6 +1,6 @@
 # Crucible service template
 
-A monorepo template with a language-neutral Smithy model, generated Rust and Java SDKs, a Rust service, and independent client examples. The `Item` resource has five working API handlers and an in-memory backend.
+A monorepo template with a language-neutral model in Crucible's modelling language (`.cru`), generated Rust and Java SDKs, a Rust service, and independent client examples. The `Item` resource has five working API handlers and an in-memory backend.
 
 ```text
 Cargo.toml                # Cargo workspace and shared Crucible version
@@ -9,9 +9,10 @@ crucible.toml             # Build-time API rules and compatibility policy
 .github/workflows/
   api-diff.yml            # PR contract compatibility checks
   sdk.yml                 # Clean builds and both native consumers over HTTP
-smithy/
+model/
   Cargo.toml              # Language-neutral model package
-  model/service.smithy    # API sources, separate from Rust code
+  api/crucible.toml       # Model package manifest: namespace and imports
+  api/service.cru         # API sources, separate from Rust code
   build.rs                # Compile once; publish model, Rust SDK, Java SDK
   src/lib.rs              # Empty Cargo package scaffold
 service/
@@ -38,7 +39,7 @@ You need Rust and GitHub read access to the private [Crucible repository](https:
 
 The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address.
 
-The first build downloads and verifies Smithy's pinned runtime. Later builds reuse its cache; no separate Smithy CLI or Java installation is needed.
+The model compiles in Rust inside the build script. No Smithy CLI, JVM, or runtime download is involved.
 
 ## Running the Rust client
 
@@ -59,8 +60,10 @@ cargo run --manifest-path client/Cargo.toml -- http://127.0.0.1:9000
 You can also run `cargo run` from `client/` or run `client/src/main.rs` in RustRover. The example is a normal Rust application with no build script or generation setup. It depends on the complete generated crate in `target/rust-sdk/` and imports the SDK with:
 
 ```rust
-use service_sdk_rust::{Config, MyServiceClient, model};
+use service_sdk_rust::{Config, CreateItemInput, MyServiceClient};
 ```
+
+Input builders validate required members, so `build()` returns a `Result`.
 
 Other Rust applications can use the same SDK by adding a path dependency on the SDK package:
 
@@ -69,7 +72,7 @@ Other Rust applications can use the same SDK by adding a path dependency on the 
 service-sdk-rust = { path = "../target/rust-sdk" }
 ```
 
-The `service-model` package compiles `smithy/model/` once and publishes its `model.json` and named SDK artifacts through Cargo build metadata. The Rust artifact includes its Cargo manifest and runtime dependency; applications consume that crate normally. The service generates its own server bindings from the same model, directly in its generated `my_service` namespace. Editing the model regenerates both SDKs on the next build. Commit the Smithy sources, generation recipes, and examples. Generated Rust and Java sources stay under ignored `target/` directories and are not committed.
+The `service-model` package compiles `model/api/` once and publishes the package directory and named SDK artifacts through Cargo build metadata. The Rust artifact includes its Cargo manifest and runtime dependency; applications consume that crate normally. The service generates its own server bindings from the same model, directly in its generated `my_service` namespace. Editing the model regenerates both SDKs on the next build. Commit the model sources, generation recipes, and examples. Generated Rust and Java sources stay under ignored `target/` directories and are not committed.
 
 ## Generating server bindings in the service crate
 
@@ -78,15 +81,16 @@ The service depends directly on `service-model` and has `crucible-build` as a bu
 ```rust
 // service/build.rs
 fn main() {
-    crucible_build::rust_service("service_model")
+    crucible_build::model("service_model")
+        .server()
         .policy("../crucible.toml")
         .generate();
 }
 ```
 
-`service/src/main.rs` calls `crucible_server_runtime_rust::include_service!();` at crate root. For Smithy `MyService`, this declares `pub mod my_service`. This generates request/response models, modeled errors, operation traits, and operation registration inside the service crate. Handlers import `crate::my_service::{GetItemInput, GetItemOutput, GetItemOperation, ResourceNotFoundException}` directly; no separate server-contract crate is needed. The helper reads the model's published AST without compiling Smithy again.
+`service/src/main.rs` calls `crucible_server_runtime_rust::include_service!();` at crate root. For the model's `MyService`, this declares `pub mod my_service`. This generates request/response models, modeled errors, operation traits, and operation registration inside the service crate. Handlers import `crate::my_service::{GetItemInput, GetItemOutput, GetItemOperation, ResourceNotFoundException}` directly; no separate server-contract crate is needed. The helper compiles the published `.cru` package directory; it is fast and needs no external tools.
 
-A server that owns its sources can instead call `crucible_build::rust_service_from_smithy("smithy").policy("crucible.toml").generate()` with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
+A server that owns its sources can instead call `crucible_build::model("api").server().policy("crucible.toml").generate()` on a local `.cru` package with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
 
 ## Generating both SDK packages
 
@@ -96,7 +100,7 @@ The shared `crucible-build` dependency enables its `java` feature. The complete 
 
 ```rust
 fn main() {
-    let model = crucible_build::smithy("model")
+    let model = crucible_build::model("api")
         .policy("../crucible.toml")
         .compile();
     model.publish();
@@ -115,11 +119,11 @@ fn main() {
 }
 ```
 
-Crucible compiles Smithy once, publishes `model.json`, and generates both native packages. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an SDK export restores it on the next root Cargo build. Changes to the API regenerate both SDKs. A second unchanged build preserves generated file timestamps.
+Crucible compiles the `.cru` package once, publishes its directory, and generates both native packages. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an SDK export restores it on the next root Cargo build. Changes to the API regenerate both SDKs. A second unchanged build preserves generated file timestamps.
 
 Give additional variants distinct artifact names, package coordinates, and output directories. A separate producer module can instead call `crucible_build::model_dependency("service_model")` and generate its SDK from the published model. Its manifest must directly depend on `service-model` so Cargo supplies the model metadata.
 
-Other client languages use the same fluent setup. For Swift, add `swift` to the shared `crucible-build` dependency's features in `Cargo.toml`, then add this call to `smithy/build.rs`:
+Other client languages use the same fluent setup. For Swift, add `swift` to the shared `crucible-build` dependency's features in `Cargo.toml`, then add this call to `model/build.rs`:
 
 ```rust
 model.swift_client("swift")
@@ -128,7 +132,7 @@ model.swift_client("swift")
     .generate_into("../target/swift-sdk");
 ```
 
-All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings.
+All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. Documentation, provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
 
 A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f7544a8b4802ec2409ce1c64eeba9527fa55992d/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
@@ -181,9 +185,9 @@ All handlers share one store. Items, create receipts, and cursors disappear when
 
 ## Changing the example
 
-`smithy/model/service.smithy` defines the resource, HTTP bindings, constraints, pagination, and exceptions. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
+`model/api/service.cru` defines the resource, HTTP bindings, constraints, pagination, and exceptions. Members are required unless written `name?:`, operations attach to `Item` with role verbs such as `creates` and `reads`, and URI labels bind input members by name. `model/api/crucible.toml` names the namespace and imports Crucible's standard errors. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
 
-Edit the model and implement the generated traits. `smithy/build.rs` compiles and validates the model, then exports complete Rust and Java SDK packages; `service/build.rs` generates server bindings for the `my_service` namespace in `service/src/main.rs`. Smithy editor metadata identifies `smithy/model/` as the source directory; generated output stays under the root `target/` directory.
+Edit the model and implement the generated traits. `model/build.rs` compiles and validates the model, then exports complete Rust and Java SDK packages; `service/build.rs` generates server bindings for the `my_service` namespace in `service/src/main.rs`. A model error fails the build with every diagnostic, each pointing at its `.cru` file, line, and column. Generated output stays under the root `target/` directory.
 
 From the repository root, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace` to check the service. Run the same commands with `--manifest-path client/Cargo.toml` to check the independent Rust client after generation. With the server running, `python service/tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
 
@@ -191,22 +195,16 @@ From the repository root, run `cargo fmt --all`, `cargo clippy --workspace --all
 
 `crucible.toml` selects naming and path conventions enforced by every Cargo build. Documentation requirements start as warnings. The model and service build scripts select this required file with `.policy("../crucible.toml")`; invalid rules, missing config, and error findings fail generation. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/a36ddee1e052cd61e3e5c222fe7e31bea07e4ede/docs/api-policy.md) for severities and exact, documented exceptions.
 
-The included `.github/workflows/api-diff.yml` passes the pull request's baseline `smithy/` and proposed `smithy/model/` directories and proposed policy to the private shared action. The checker assembles both directories with its pinned Smithy compiler, imports Crucible traits, flattens mixins, and compares the APIs. Findings appear in the job summary and `api-diff-report` artifact; breaking changes fail the job.
+The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 
-After creating a repository from this template, configure variable `CRUCIBLE_APP_ID` and secret `CRUCIBLE_APP_PRIVATE_KEY` for the existing `crucible-ci-read` GitHub App. Its Operation-Leyline installation needs Contents: read access to `crucible` and `crucible-actions`. The workflow uses that installation even when your service belongs to another organization. GitHub does not copy template repository secrets into new repositories.
+Keep both root `Cargo.lock` and `client/Cargo.lock` committed. The SDK verification workflow starts from a clean build, checks the service and native clients over HTTP, and verifies cleanup. It fetches the private Crucible repository: after creating a repository from this template, configure variable `CRUCIBLE_APP_ID` and secret `CRUCIBLE_APP_PRIVATE_KEY` for the existing `crucible-ci-read` GitHub App, whose Operation-Leyline installation needs Contents: read access to `crucible`. GitHub does not copy template repository secrets into new repositories.
 
-The compatibility job reads Smithy sources and does not build either Rust service. The baseline needs its `smithy/` directory, even if it uses an older build helper. Missing directories or invalid Smithy fail the job. Fork PRs do not receive repository secrets. Keep both root `Cargo.lock` and `client/Cargo.lock` committed. The SDK verification workflow starts from a clean build, checks the service and native clients over HTTP, and verifies cleanup.
+## Editor support
 
-## Smithy editor checks
-
-Keep your Smithy language plugin and install the **Smithy Cargo** companion ZIP through **Settings > Plugins > Install Plugin from Disk**, then restart RustRover.
-It exposes the resolved prelude and Crucible traits through Cargo metadata, without generating editor copies in your project.
-
-The companion currently targets RustRover 2026.2 and Smithy plugin 2.0.19.
-Download the [tested preview companion](https://github.com/Operation-Leyline/crucible/actions/runs/37561833516).
-Select the `smithy-cargo-plugin` artifact, extract its outer archive, and install `smithy-cargo-0.1.0.zip`.
-Matching Crucible releases will include the plugin as a release asset.
+RustRover and IntelliJ IDEA 2026.2 support `.cru` files through the [Crucible plugin](https://github.com/Operation-Leyline/crucible-intellij). Install its release ZIP through **Settings > Plugins > Install Plugin from Disk**. It bundles the `crucible-lsp` language server, so opening `model/api/service.cru` shows the compiler's errors as you type, with completion, go to declaration, find usages, rename, hover, the structure view, and Reformat Code. `model/api/crucible.toml` is checked too.
 
 ## Dependency versions
 
-The framework and build helper in the root `Cargo.toml` pin the same immutable commit. The generated Rust SDK automatically pins its runtime to that generator revision, including API policies and complete SDK package export. Update the two root dependency pins together when adopting a release. The workflow independently pins the checker with Smithy-directory support and the shared actions. `Cargo.lock` is committed; the build helper supplies the pinned Smithy compiler and prelude.
+The framework and build helper in the root `Cargo.toml` pin the same immutable commit. The generated Rust SDK automatically pins its runtime to that generator revision. Update the two root dependency pins together when adopting a release. `Cargo.lock` is committed, and the model compiles in Rust, so no Smithy compiler or JVM is involved.
+
+To build against a local Crucible checkout while changing Crucible itself, point both dependencies at it with `path = "<checkout>/crates/..."`, and add `.runtime_path("<checkout>/crates/crucible-client-runtime-rust")` to the Rust SDK in `model/build.rs`.

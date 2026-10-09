@@ -1,5 +1,6 @@
 fn main() {
-    crucible_build::rust_service("service_model")
+    crucible_build::model("service_model")
+        .server()
         .policy("../crucible.toml")
         .generate();
 }

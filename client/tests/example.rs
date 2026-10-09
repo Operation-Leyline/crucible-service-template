@@ -1,6 +1,9 @@
 use std::process::Command;
 
-use service_sdk_rust::{Config, Error, GetItemError, MyServiceClient, model};
+use service_sdk_rust::{
+    Config, CreateItemInput, DeleteItemInput, Error, GetItemError, GetItemInput, ItemDetails,
+    MyServiceClient,
+};
 
 #[tokio::test]
 #[ignore = "requires a running service; optionally set CRUCIBLE_ENDPOINT"]
@@ -13,9 +16,9 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
     for index in 0..2 {
         match client
             .create_item(
-                model::CreateItemInput::builder()
+                CreateItemInput::builder()
                     .name(format!("Existing item {index}"))
-                    .build(),
+                    .build()?,
             )
             .await
         {
@@ -36,11 +39,7 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
     for item in &existing {
         preserved.push(
             client
-                .get_item(
-                    model::GetItemInput::builder()
-                        .item_id(&item.item_id)
-                        .build(),
-                )
+                .get_item(GetItemInput::builder().item_id(&item.item_id).build()?)
                 .await,
         );
     }
@@ -77,7 +76,7 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
         );
     }
     assert!(matches!(
-        client.get_item(model::GetItemInput::builder().item_id(item_id).build()).await,
+        client.get_item(GetItemInput::builder().item_id(item_id).build()?).await,
         Err(Error::Service(error))
             if matches!(error.error, GetItemError::ResourceNotFoundException(_))
     ));
@@ -87,16 +86,12 @@ async fn example_paginates_and_cleans_up_without_removing_existing_items()
 
 async fn cleanup(
     client: &MyServiceClient,
-    items: &[model::ItemDetails],
+    items: &[ItemDetails],
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut first_error = None;
     for item in items {
         if let Err(error) = client
-            .delete_item(
-                model::DeleteItemInput::builder()
-                    .item_id(&item.item_id)
-                    .build(),
-            )
+            .delete_item(DeleteItemInput::builder().item_id(&item.item_id).build()?)
             .await
         {
             eprintln!("Could not delete seeded item {}: {error}", item.item_id);

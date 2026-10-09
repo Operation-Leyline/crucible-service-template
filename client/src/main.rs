@@ -1,4 +1,7 @@
-use service_sdk_rust::{Config, MyServiceClient, model};
+use service_sdk_rust::{
+    Config, CreateItemInput, DeleteItemInput, GetItemInput, ListItemsInput, MyServiceClient,
+    UpdateItemInput,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -8,10 +11,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = MyServiceClient::new(Config::new(endpoint));
     let created = client
         .create_item(
-            model::CreateItemInput::builder()
+            CreateItemInput::builder()
                 .name("Rust client example")
                 .description("Created through the generated SDK")
-                .build(),
+                .build()?,
         )
         .await?;
     let item_id = created.item.item_id;
@@ -19,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = exercise(&client, &item_id).await;
     let deleted = client
-        .delete_item(model::DeleteItemInput::builder().item_id(&item_id).build())
+        .delete_item(DeleteItemInput::builder().item_id(&item_id).build()?)
         .await;
     result?;
     deleted?;
@@ -32,22 +35,21 @@ async fn exercise(
     item_id: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let fetched = client
-        .get_item(model::GetItemInput::builder().item_id(item_id).build())
+        .get_item(GetItemInput::builder().item_id(item_id).build()?)
         .await?;
     println!("Read: {}", fetched.item.name);
 
     let updated = client
         .update_item(
-            model::UpdateItemInput::builder()
+            UpdateItemInput::builder()
                 .item_id(item_id)
                 .name("Updated by the Rust client")
-                .build(),
+                .build()?,
         )
         .await?;
     println!("Updated: {}", updated.item.name);
 
-    let mut pages =
-        client.list_items_pages(model::ListItemsInput::builder().max_results(1).build());
+    let mut pages = client.list_items_pages(ListItemsInput::builder().max_results(1).build());
     while let Some(page) = pages.next_page().await {
         for item in page?.items {
             println!("Listed: {} ({})", item.name, item.item_id);
