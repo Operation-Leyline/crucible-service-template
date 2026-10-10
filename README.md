@@ -10,8 +10,10 @@ Cargo.lock                # Shared dependency lockfile
   sdk.yml                 # Clean builds and both native consumers over HTTP
 model/
   Cargo.toml              # Language-neutral model package
-  api/crucible.toml       # Package manifest: namespace, imports and API policy
+  api/crucible.toml       # Package manifest: namespace, imports, API policy, baseline
   api/service.cru         # API sources, separate from Rust code
+  api/migrations.cru      # How release 2 still serves release 1's clients
+  api/releases/1/         # Release 1, frozen: the compatibility baseline
   build.rs                # Compile once; publish model, Rust SDK, Java SDK
   src/lib.rs              # Empty Cargo package scaffold
 service/
@@ -169,11 +171,11 @@ Set `CRUCIBLE_ENDPOINT` to test another endpoint. This test creates two temporar
 | DeleteItem | `DELETE /items/{itemId}` | 204, empty body |
 | ListItems | `GET /items?maxResults=20` | 200, items and optional nextToken |
 
-Creation accepts `name`, optional `description`, and `clientToken`. Provide a token when using raw HTTP; generated SDKs can fill it automatically. Repeating an identical create with the same token returns the original result. Changed fields with that token return `ConflictException` (409), including the conflicting item ID. Receipts last eight hours, including after deletion; replaying one does not recreate a deleted item.
+Creation accepts `name`, optional `notes`, and `clientToken`. Provide a token when using raw HTTP; generated SDKs can fill it automatically. Repeating an identical create with the same token returns the original result. Changed fields with that token return `ConflictException` (409), including the conflicting item ID. Receipts last eight hours, including after deletion; replaying one does not recreate a deleted item.
 
-Update replaces the editable fields. Omitting `description` clears it. Get and update return `ResourceNotFoundException` (404) for a missing item. Delete succeeds even if the item is already absent.
+Update replaces the editable fields. Omitting `notes` clears them. Get and update return `ResourceNotFoundException` (404) for a missing item. Delete succeeds even if the item is already absent.
 
-List returns at most `maxResults` items (default 20, maximum 100), ordered by immutable ID. Pass `nextToken` to continue; page size can change between requests. Tokens are opaque references, expire after 15 minutes, and become invalid on restart. At most 1,024 cursors are retained; issuing another evicts the oldest. Invalid tokens return `ValidationException` (400).
+List returns at most `maxResults` items (required, maximum 100), ordered by immutable ID. Pass `nextToken` to continue; page size can change between requests. Tokens are opaque references, expire after 15 minutes, and become invalid on restart. At most 1,024 cursors are retained; issuing another evicts the oldest. Invalid tokens return `ValidationException` (400).
 
 All handlers share one store. Items, create receipts, and cursors disappear when the process stops. The example permits 1,000 items and 10,000 unexpired create receipts; reaching either limit returns `ServiceQuotaExceededException` (402). It has no authentication and is intended for local learning. Replace the store with durable storage before running multiple instances.
 
@@ -185,9 +187,46 @@ Edit the model and implement the generated traits. `model/build.rs` compiles and
 
 From the repository root, run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace` to check the service. Run the same commands with `--manifest-path client/Cargo.toml` to check the independent Rust client after generation. With the server running, `python service/tools/smoke.py` checks the API over real HTTP, or pass another endpoint as its first argument.
 
+## Evolving the API: releases and migrations
+
+The model is at release 2 (`version "2"`). Release 1 called the item's notes `description` and let `ListItems` omit `maxResults`. Both changes break release 1's clients, so the build accepts them only because `model/api/migrations.cru` declares them:
+
+```text
+migration "2" from "1" {
+    rename ItemDetails.description -> notes
+    rename CreateItem.input.description -> notes
+    rename UpdateItem.input.description -> notes
+    require ListItems.input.maxResults default 25
+    sunset "2027-12-31"
+}
+```
+
+`model/api/releases/1/` is release 1, frozen, and `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen. With the IntelliJ plugin, both show in the editor as you type.
+
+The service serves both releases from the same handlers. A request names its release in the `Crucible-Version` header. A release 1 request is read with release 1's types, converted to release 2's (`description` becomes `notes`, and a missing `maxResults` becomes 25), handled, and its response converted back. Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`. Try the last two requests in `service/requests.http`, or:
+
+```sh
+curl -H 'Crucible-Version: 1' 'http://127.0.0.1:8080/items'
+```
+
+The generated SDKs do not send their release yet, so `service/src/main.rs` serves a request without the header at the current release (`Unversioned::Resolve`). Once clients send theirs, the framework's default serves an unversioned request at the oldest release, as built for clients that predate versions.
+
+To release a breaking change of your own:
+
+1. Freeze the current release before changing it: `crucible freeze model/api`, using the CLI from Crucible's repository (`cargo run -p crucible-cli -- freeze <path>`). It writes `model/api/releases/<version>`.
+2. Point `[model.baseline] path` at the new release, bump `version` in `service.cru`, and make the change.
+3. Declare it in a new `migration "<new>" from "<old>" { .. }`. The build lists every breaking change and what step declares it.
+
+Besides `rename`, `require .. default` and `sunset`, a migration can:
+- `add` an enum value or an operation error, with the value or error older clients see instead;
+- `move` an operation's route;
+- mark a `behavior` change, which a handler branches on with `self.context().api_version()`.
+
+Changes the framework cannot convert by itself, `reshape`, `retype` and `require .. by hook`, become methods of a generated `my_service::versions::v1::Migration` trait that the service implements. So does `remove operation`, whose handler keeps serving older releases. See Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/api-versions.md).
+
 ## API policy and compatibility
 
-`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/254d217f33c52c358923afe260ed122274f0262b/docs/api-policy.md) for severities and exact, documented exceptions.
+`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/api-policy.md) for severities and exact, documented exceptions.
 
 The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 

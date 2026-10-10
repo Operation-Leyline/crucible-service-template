@@ -7,6 +7,12 @@ language = 1
 sources = ["."]
 imports = ["crucible.errors"]
 
+# The last released contract, frozen with `crucible freeze model/api`. A
+# breaking change against it compiles only when a `migration` declares it
+# (migrations.cru), and the service keeps serving release 1's clients.
+[model.baseline]
+path = "releases/1"
+
 [rules.naming]
 severity = "error"
 operations = "PascalCase"

@@ -71,7 +71,7 @@ def main():
         for expected in ["Created ", "Read: ", "Updated: ", "Listed: ", "Deleted "]:
             if expected not in output:
                 raise RuntimeError(f"Kotlin example did not report {expected!r}")
-        with urllib.request.urlopen(endpoint + "/items", timeout=10) as response:
+        with urllib.request.urlopen(endpoint + "/items?maxResults=100", timeout=10) as response:
             if json.load(response)["items"]:
                 raise RuntimeError("SDK examples left temporary items behind")
         print("Service, independent Rust SDK consumer, Gradle Kotlin consumer of the Java SDK, pagination and cleanup passed")

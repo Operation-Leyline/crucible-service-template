@@ -6,7 +6,7 @@ Content-Type: application/json
 
 {
   "name": "First item",
-  "description": "Created from RustRover",
+  "notes": "Created from RustRover",
   "clientToken": "rustrover-first-item"
 }
 
@@ -24,7 +24,7 @@ Content-Type: application/json
 
 {
   "name": "Updated item",
-  "description": "The service remembers this change"
+  "notes": "The service remembers this change"
 }
 
 ### Create a second item for pagination
@@ -60,3 +60,18 @@ Content-Type: application/json
 
 ### Unmatched route: UnknownOperationException (404)
 GET {{host}}/missing
+
+### A release 1 client: `description`, and no page size needed (Sunset header)
+POST {{host}}/items
+Content-Type: application/json
+Crucible-Version: 1
+
+{
+  "name": "From a release 1 client",
+  "description": "Release 1 calls this field description",
+  "clientToken": "rustrover-release-1-item"
+}
+
+### Release 1 lists without maxResults; release 2 requires it
+GET {{host}}/items
+Crucible-Version: 1

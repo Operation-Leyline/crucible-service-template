@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     val client = MyServiceClient(config)
     val created = client.createItem {
         it.name("Kotlin client example")
-            .description("Created through the generated Java SDK from Kotlin")
+            .notes("Created through the generated Java SDK from Kotlin")
     }
     val itemId = created.item().itemId()
     println("Created $itemId")

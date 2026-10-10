@@ -6,7 +6,7 @@ impl CreateItemOperation for Service {
     async fn create_item(&self, input: CreateItemInput) -> Result<CreateItemOutput> {
         let item = self
             .items
-            .create(input.name, input.description, input.client_token)?;
+            .create(input.name, input.notes, input.client_token)?;
         Ok(CreateItemOutput { item })
     }
 }

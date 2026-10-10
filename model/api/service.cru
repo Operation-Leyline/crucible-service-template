@@ -3,7 +3,7 @@
 // resource with a role verb, and URI labels bind input members by name.
 
 service MyService {
-    version "1"
+    version "2"
     protocol json
     resources [Item]
     errors [ValidationException, InternalServerException, UnknownOperationException]
@@ -35,7 +35,7 @@ string NextToken { length 1..64 }
 structure ItemDetails {
     itemId: ItemId
     name: ItemName
-    description?: ItemDescription
+    notes?: ItemDescription
 }
 
 list ItemList: ItemDetails
@@ -46,7 +46,7 @@ operation CreateItem creates Item {
 
     input {
         name: ItemName
-        description?: ItemDescription
+        notes?: ItemDescription
         @token
         clientToken?: ClientToken
     }
@@ -73,14 +73,14 @@ operation GetItem reads Item {
     errors [ResourceNotFoundException]
 }
 
-/// Replaces the editable fields; omitting description clears it.
+/// Replaces the editable fields; omitting notes clears them.
 operation UpdateItem updates Item {
     http PUT "/items/{itemId}"
 
     input {
         $itemId
         name: ItemName
-        description?: ItemDescription
+        notes?: ItemDescription
     }
 
     output {
@@ -108,7 +108,7 @@ operation ListItems lists Item {
         @query
         nextToken?: NextToken
         @query
-        maxResults?: integer { range 1..100 }
+        maxResults: integer { range 1..100 }
     }
 
     output {

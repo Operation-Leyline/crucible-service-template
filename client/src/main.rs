@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .create_item(
             CreateItemInput::builder()
                 .name("Rust client example")
-                .description("Created through the generated SDK")
+                .notes("Created through the generated SDK")
                 .build()?,
         )
         .await?;
@@ -49,7 +49,7 @@ async fn exercise(
         .await?;
     println!("Updated: {}", updated.item.name);
 
-    let mut pages = client.list_items_pages(ListItemsInput::builder().max_results(1).build());
+    let mut pages = client.list_items_pages(ListItemsInput::builder().max_results(1).build()?);
     while let Some(page) = pages.next_page().await {
         for item in page?.items {
             println!("Listed: {} ({})", item.name, item.item_id);

@@ -1,0 +1,21 @@
+// How release 2 keeps serving clients built for release 1, from the same
+// handlers (Crucible's docs/api-versions.md). The build checks every step
+// against what changed since releases/1, both ways: a breaking change no
+// step declares fails, and so does a step for a change that did not happen.
+//
+// A request names its version in the `Crucible-Version` header. One at
+// release 1 is decoded with release 1's types, converted to release 2's,
+// handled, and its response converted back.
+
+migration "2" from "1" {
+    // `description` is `notes` now, in requests and responses.
+    rename ItemDetails.description -> notes
+    rename CreateItem.input.description -> notes
+    rename UpdateItem.input.description -> notes
+
+    // A page size is required now; a release 1 request without one gets 25.
+    require ListItems.input.maxResults default 25
+
+    // Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`.
+    sunset "2027-12-31"
+}

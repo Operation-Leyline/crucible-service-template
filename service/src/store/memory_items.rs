@@ -34,7 +34,7 @@ impl MemoryItems {
     pub fn create(
         &self,
         name: String,
-        description: Option<String>,
+        notes: Option<String>,
         client_token: Option<String>,
     ) -> Result<ItemDetails> {
         let token = client_token.ok_or_else(|| {
@@ -47,7 +47,7 @@ impl MemoryItems {
         let now = Instant::now();
         state.receipts.retain(|_, receipt| receipt.expires > now);
         if let Some(receipt) = state.receipts.get(&token) {
-            if receipt.name != name || receipt.description != description {
+            if receipt.name != name || receipt.notes != notes {
                 return Err(ConflictException {
                     message: "This clientToken was already used with different item fields.".into(),
                     resource_id: receipt.item.item_id.clone(),
@@ -68,14 +68,14 @@ impl MemoryItems {
         let item = ItemDetails {
             item_id: Uuid::new_v4().to_string(),
             name: name.clone(),
-            description: description.clone(),
+            notes: notes.clone(),
         };
         state.items.insert(item.item_id.clone(), item.clone());
         state.receipts.insert(
             token,
             CreateReceipt {
                 name,
-                description,
+                notes,
                 item: item.clone(),
                 expires: now + RECEIPT_TTL,
             },
@@ -91,16 +91,11 @@ impl MemoryItems {
             .ok_or_else(|| missing(id))
     }
 
-    pub fn update(
-        &self,
-        id: &str,
-        name: String,
-        description: Option<String>,
-    ) -> Result<ItemDetails> {
+    pub fn update(&self, id: &str, name: String, notes: Option<String>) -> Result<ItemDetails> {
         let mut state = self.lock()?;
         let item = state.items.get_mut(id).ok_or_else(|| missing(id))?;
         item.name = name;
-        item.description = description;
+        item.notes = notes;
         Ok(item.clone())
     }
 
