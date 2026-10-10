@@ -119,7 +119,7 @@ fn main() {
 }
 ```
 
-Crucible compiles the `.cru` package once, publishes its directory, and generates both native packages and the OpenAPI document. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an SDK export restores it on the next root Cargo build. Changes to the API regenerate both SDKs. A second unchanged build preserves generated file timestamps.
+Crucible compiles the `.cru` package once, publishes its directory, and generates both native packages and the OpenAPI document. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an export restores it on the next root Cargo build. Changes to the API regenerate all three outputs. A second unchanged build preserves generated file timestamps.
 
 Give additional variants distinct artifact names, package coordinates, and output directories. A separate producer module can instead call `crucible_build::model_dependency("service_model")` and generate its SDK from the published model. Its manifest must directly depend on `service-model` so Cargo supplies the model metadata.
 
@@ -134,11 +134,11 @@ model.swift_client("swift")
 
 All 14 client languages have matching helpers.
 
-The OpenAPI document describes the current release (its `info.version` is the model's `version`) for tools that read OpenAPI, such as API gateways, Postman or a documentation site. `.endpoint(...)` sets its server URL; omit it to leave `servers` out. The document does not describe older releases or the `Crucible-Version` header.
+The OpenAPI document describes the current release (its `info.version` is the model's `version`) for tools that read OpenAPI, such as API gateways or Postman. `.endpoint(...)` sets its server URL; omit it to leave `servers` out. The document does not describe older releases or the `Crucible-Version` header.
 
-CDK, Terraform/OpenTofu, and service CLI outputs use `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. Documentation, provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
+CDK, Terraform/OpenTofu, and service CLI outputs use `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. The API reference output (`model.docs(...)`), provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
 
-A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f7544a8b4802ec2409ce1c64eeba9527fa55992d/docs/build-outputs.md) for the complete feature list, output settings, and examples.
+A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
 ## Running the Kotlin client with Gradle
 

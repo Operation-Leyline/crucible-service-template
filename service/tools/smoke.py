@@ -79,10 +79,10 @@ def main():
         created.append(response["item"]["itemId"])
         headers = {key.lower(): value for key, value in headers.items()}
         assert headers["crucible-version"] == "1" and headers["sunset"] == "Fri, 31 Dec 2027 00:00:00 GMT", headers
-        status, page, _ = request("GET", "/items?maxResults=100", version="1")
-        assert status == 200, page
-        listed = [entry for entry in page["items"] if entry["itemId"] == created[-1]]
-        assert listed and listed[0]["description"] == "old name" and "notes" not in listed[0], page
+        status, response, _ = request("GET", "/items/" + created[-1], version="1")
+        assert status == 200 and response["item"]["description"] == "old name", response
+        assert "notes" not in response["item"], response
+        # Release 1 may omit maxResults (the migration fills in its default).
         status, page, _ = request("GET", "/items", version="1")
         assert status == 200 and len(page["items"]) <= 20, page
         error("GET", "/items", None, 400, "ValidationException")

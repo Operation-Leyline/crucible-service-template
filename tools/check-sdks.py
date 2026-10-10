@@ -27,10 +27,6 @@ def run(arguments, *, capture=False, env=None, timeout=COMMAND_TIMEOUT):
 
 def main():
     output = run(["cargo", "build", "--workspace", "--locked", "--message-format=json"], capture=True)
-    # The model build also exports the current release's OpenAPI document.
-    document = json.loads((ROOT / "target/openapi/openapi.json").read_text(encoding="utf-8"))
-    if not document["openapi"].startswith("3.1") or "/items" not in document["paths"]:
-        raise RuntimeError("the OpenAPI document is missing or incomplete")
     executable = None
     for line in output.splitlines():
         message = json.loads(line)
@@ -43,6 +39,11 @@ def main():
     for manifest in ["target/rust-sdk/Cargo.toml", "target/java-sdk/build.gradle.kts"]:
         if not (ROOT / manifest).is_file():
             raise RuntimeError(f"Model build did not generate {manifest}")
+    # The model build also exports the current release's OpenAPI document.
+    openapi = ROOT / "target/openapi/openapi.json"
+    document = json.loads(openapi.read_text(encoding="utf-8")) if openapi.is_file() else {}
+    if not str(document.get("openapi", "")).startswith("3.1") or "/items" not in document.get("paths", {}):
+        raise RuntimeError("Model build did not generate a complete target/openapi/openapi.json")
     run(["cargo", "fmt", "--all", "--check"])
     run(["cargo", "fmt", "--manifest-path", "client/Cargo.toml", "--all", "--check"])
     run(["cargo", "test", "--workspace", "--locked"])
