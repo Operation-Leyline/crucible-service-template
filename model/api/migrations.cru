@@ -1,6 +1,6 @@
 // How release 2 keeps serving clients built for release 1, from the same
 // handlers (Crucible's docs/api-versions.md). The build checks every step
-// against what changed since releases/1, both ways: a breaking change no
+// against what changed since release 1 (releases/1.json), both ways: a breaking change no
 // step declares fails, and so does a step for a change that did not happen.
 //
 // A request names its version in the `Crucible-Version` header. One at
