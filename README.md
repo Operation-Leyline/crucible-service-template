@@ -14,7 +14,7 @@ model/
   api/service.cru         # API sources, separate from Rust code
   api/migrations.cru      # How release 2 still serves release 1's clients
   api/releases/1/         # Release 1, frozen: the compatibility baseline
-  build.rs                # Compile once; publish model, Rust SDK, Java SDK
+  build.rs                # Compile once; publish model, Rust SDK, Java SDK, OpenAPI
   src/lib.rs              # Empty Cargo package scaffold
 service/
   build.rs                # Generate server bindings from the published model
@@ -90,11 +90,11 @@ fn main() {
 
 A server that owns its sources can instead call `crucible_build::model("api").server().generate()` on a local `.cru` package with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
 
-## Generating both SDK packages
+## Generating both SDK packages and the OpenAPI document
 
-The root workspace contains only the model and service. Run `cargo build` once before opening either independent client project. The model build creates complete SDK packages at `target/rust-sdk/` and `target/java-sdk/`; generated files stay ignored. Cargo loads dependency manifests before running build scripts, so the Rust client deliberately has its own workspace and lockfile.
+The root workspace contains only the model and service. Run `cargo build` once before opening either independent client project. The model build creates complete SDK packages at `target/rust-sdk/` and `target/java-sdk/`, and an OpenAPI 3.1 document at `target/openapi/openapi.json`; generated files stay ignored. Cargo loads dependency manifests before running build scripts, so the Rust client deliberately has its own workspace and lockfile.
 
-The shared `crucible-build` dependency enables its `java` feature. The complete model build script is:
+The shared `crucible-build` dependency enables its `java` and `openapi` features. The complete model build script is:
 
 ```rust
 fn main() {
@@ -112,10 +112,14 @@ fn main() {
         .artifact_id("myservice-sdk")
         .version("0.1.0")
         .generate_into("../target/java-sdk");
+    model
+        .openapi("openapi")
+        .endpoint("http://127.0.0.1:8080")
+        .generate_into("../target/openapi");
 }
 ```
 
-Crucible compiles the `.cru` package once, publishes its directory, and generates both native packages. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an SDK export restores it on the next root Cargo build. Changes to the API regenerate both SDKs. A second unchanged build preserves generated file timestamps.
+Crucible compiles the `.cru` package once, publishes its directory, and generates both native packages and the OpenAPI document. `generate_into` also exports them to the declared paths and tracks their generated files: deleting an SDK export restores it on the next root Cargo build. Changes to the API regenerate both SDKs. A second unchanged build preserves generated file timestamps.
 
 Give additional variants distinct artifact names, package coordinates, and output directories. A separate producer module can instead call `crucible_build::model_dependency("service_model")` and generate its SDK from the published model. Its manifest must directly depend on `service-model` so Cargo supplies the model metadata.
 
@@ -128,7 +132,11 @@ model.swift_client("swift")
     .generate_into("../target/swift-sdk");
 ```
 
-All 14 client languages have matching helpers. OpenAPI, CDK, Terraform/OpenTofu, and service CLI outputs use `model.openapi(...)`, `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. Documentation, provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
+All 14 client languages have matching helpers.
+
+The OpenAPI document describes the current release (its `info.version` is the model's `version`) for tools that read OpenAPI, such as API gateways, Postman or a documentation site. `.endpoint(...)` sets its server URL; omit it to leave `servers` out. The document does not describe older releases or the `Crucible-Version` header.
+
+CDK, Terraform/OpenTofu, and service CLI outputs use `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. Documentation, provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
 
 A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f7544a8b4802ec2409ce1c64eeba9527fa55992d/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 

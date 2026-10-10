@@ -27,6 +27,10 @@ def run(arguments, *, capture=False, env=None, timeout=COMMAND_TIMEOUT):
 
 def main():
     output = run(["cargo", "build", "--workspace", "--locked", "--message-format=json"], capture=True)
+    # The model build also exports the current release's OpenAPI document.
+    document = json.loads((ROOT / "target/openapi/openapi.json").read_text(encoding="utf-8"))
+    if not document["openapi"].startswith("3.1") or "/items" not in document["paths"]:
+        raise RuntimeError("the OpenAPI document is missing or incomplete")
     executable = None
     for line in output.splitlines():
         message = json.loads(line)
