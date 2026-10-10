@@ -1,0 +1,2386 @@
+{
+  "format": 1,
+  "compiler": "crucible 0.4.0",
+  "service": {
+    "cors": null,
+    "internal": false,
+    "endpoint_discovery": null,
+    "recursive_groups": [],
+    "xml_namespace": null,
+    "xml_shapes": {},
+    "protocol": "crucibleJson",
+    "protocols": [
+      "crucibleJson"
+    ],
+    "errors": [
+      "crucible.errors#ValidationException",
+      "crucible.errors#InternalServerException",
+      "crucible.errors#UnknownOperationException"
+    ],
+    "protocol_settings": {
+      "http": [
+        "http/1.1"
+      ],
+      "eventStreamHttp": [
+        "http/1.1"
+      ],
+      "noErrorWrapping": false,
+      "omitNullStructureMembers": false,
+      "ignoreUnknownUnionType": false,
+      "nonFiniteFloatStrings": false
+    },
+    "requirements": [],
+    "id": "example.service#MyService",
+    "version": "1",
+    "title": null,
+    "docs": null,
+    "notes": {
+      "deprecated": null,
+      "since": null,
+      "unstable": false,
+      "external_docs": {}
+    },
+    "auth": [],
+    "scopes": [],
+    "auth_schemes": {},
+    "endpoint_rules": null,
+    "protocol_tests": [],
+    "operations": [
+      {
+        "protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "response_protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "internal": false,
+        "unwrapped_xml_output": false,
+        "unsigned_payload": false,
+        "discovered_endpoint": null,
+        "checksum": null,
+        "id": "example.service#CreateItem",
+        "auth": [],
+        "scopes": [],
+        "optional_auth": false,
+        "endpoint": null,
+        "endpoint_parameters": {},
+        "waiters": {},
+        "resource": "example.service#Item",
+        "docs": "Creates an item; retries with the same token and fields return the original result for eight hours.",
+        "notes": {
+          "deprecated": null,
+          "since": null,
+          "unstable": false,
+          "external_docs": {}
+        },
+        "method": "POST",
+        "uri": {
+          "segments": [
+            {
+              "Literal": "items"
+            }
+          ],
+          "query": [],
+          "greedy_labels": []
+        },
+        "status": 201,
+        "input": "example.service#CreateItemInput",
+        "output": "example.service#CreateItemOutput",
+        "errors": [
+          "example.service#ConflictException",
+          "example.service#ServiceQuotaExceededException",
+          "crucible.errors#ValidationException",
+          "crucible.errors#InternalServerException",
+          "crucible.errors#UnknownOperationException"
+        ],
+        "readonly": false,
+        "idempotent": true,
+        "idempotency_token": "clientToken",
+        "paginated": null,
+        "examples": [],
+        "request": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "name",
+            "description",
+            "clientToken"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "response": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "item"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "traits": {}
+      },
+      {
+        "protocol_headers": {},
+        "response_protocol_headers": {},
+        "internal": false,
+        "unwrapped_xml_output": false,
+        "unsigned_payload": false,
+        "discovered_endpoint": null,
+        "checksum": null,
+        "id": "example.service#DeleteItem",
+        "auth": [],
+        "scopes": [],
+        "optional_auth": false,
+        "endpoint": null,
+        "endpoint_parameters": {},
+        "waiters": {},
+        "resource": "example.service#Item",
+        "docs": "Deletes an item; an already absent item also succeeds.",
+        "notes": {
+          "deprecated": null,
+          "since": null,
+          "unstable": false,
+          "external_docs": {}
+        },
+        "method": "DELETE",
+        "uri": {
+          "segments": [
+            {
+              "Literal": "items"
+            },
+            {
+              "Label": "itemId"
+            }
+          ],
+          "query": [],
+          "greedy_labels": []
+        },
+        "status": 204,
+        "input": "example.service#DeleteItemInput",
+        "output": null,
+        "errors": [
+          "crucible.errors#ValidationException",
+          "crucible.errors#InternalServerException",
+          "crucible.errors#UnknownOperationException"
+        ],
+        "readonly": false,
+        "idempotent": true,
+        "idempotency_token": null,
+        "paginated": null,
+        "examples": [],
+        "request": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [
+            "itemId"
+          ],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [],
+          "event_stream": null,
+          "payload": null
+        },
+        "response": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [],
+          "event_stream": null,
+          "payload": null
+        },
+        "traits": {}
+      },
+      {
+        "protocol_headers": {},
+        "response_protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "internal": false,
+        "unwrapped_xml_output": false,
+        "unsigned_payload": false,
+        "discovered_endpoint": null,
+        "checksum": null,
+        "id": "example.service#GetItem",
+        "auth": [],
+        "scopes": [],
+        "optional_auth": false,
+        "endpoint": null,
+        "endpoint_parameters": {},
+        "waiters": {},
+        "resource": "example.service#Item",
+        "docs": "Retrieves an item by its immutable identifier.",
+        "notes": {
+          "deprecated": null,
+          "since": null,
+          "unstable": false,
+          "external_docs": {}
+        },
+        "method": "GET",
+        "uri": {
+          "segments": [
+            {
+              "Literal": "items"
+            },
+            {
+              "Label": "itemId"
+            }
+          ],
+          "query": [],
+          "greedy_labels": []
+        },
+        "status": 200,
+        "input": "example.service#GetItemInput",
+        "output": "example.service#GetItemOutput",
+        "errors": [
+          "example.service#ResourceNotFoundException",
+          "crucible.errors#ValidationException",
+          "crucible.errors#InternalServerException",
+          "crucible.errors#UnknownOperationException"
+        ],
+        "readonly": true,
+        "idempotent": false,
+        "idempotency_token": null,
+        "paginated": null,
+        "examples": [],
+        "request": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [
+            "itemId"
+          ],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [],
+          "event_stream": null,
+          "payload": null
+        },
+        "response": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "item"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "traits": {}
+      },
+      {
+        "protocol_headers": {},
+        "response_protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "internal": false,
+        "unwrapped_xml_output": false,
+        "unsigned_payload": false,
+        "discovered_endpoint": null,
+        "checksum": null,
+        "id": "example.service#ListItems",
+        "auth": [],
+        "scopes": [],
+        "optional_auth": false,
+        "endpoint": null,
+        "endpoint_parameters": {},
+        "waiters": {},
+        "resource": "example.service#Item",
+        "docs": "Lists items in identifier order with opaque pagination tokens.",
+        "notes": {
+          "deprecated": null,
+          "since": null,
+          "unstable": false,
+          "external_docs": {}
+        },
+        "method": "GET",
+        "uri": {
+          "segments": [
+            {
+              "Literal": "items"
+            }
+          ],
+          "query": [],
+          "greedy_labels": []
+        },
+        "status": 200,
+        "input": "example.service#ListItemsInput",
+        "output": "example.service#ListItemsOutput",
+        "errors": [
+          "crucible.errors#ValidationException",
+          "crucible.errors#InternalServerException",
+          "crucible.errors#UnknownOperationException"
+        ],
+        "readonly": true,
+        "idempotent": false,
+        "idempotency_token": null,
+        "paginated": {
+          "input_token": "nextToken",
+          "output_token": "nextToken",
+          "items": "items",
+          "page_size": "maxResults"
+        },
+        "examples": [],
+        "request": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [
+            {
+              "member": "nextToken",
+              "name": "nextToken"
+            },
+            {
+              "member": "maxResults",
+              "name": "maxResults"
+            }
+          ],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [],
+          "event_stream": null,
+          "payload": null
+        },
+        "response": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "items",
+            "nextToken"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "traits": {}
+      },
+      {
+        "protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "response_protocol_headers": {
+          "Content-Type": "application/json"
+        },
+        "internal": false,
+        "unwrapped_xml_output": false,
+        "unsigned_payload": false,
+        "discovered_endpoint": null,
+        "checksum": null,
+        "id": "example.service#UpdateItem",
+        "auth": [],
+        "scopes": [],
+        "optional_auth": false,
+        "endpoint": null,
+        "endpoint_parameters": {},
+        "waiters": {},
+        "resource": "example.service#Item",
+        "docs": "Replaces the editable fields; omitting description clears it.",
+        "notes": {
+          "deprecated": null,
+          "since": null,
+          "unstable": false,
+          "external_docs": {}
+        },
+        "method": "PUT",
+        "uri": {
+          "segments": [
+            {
+              "Literal": "items"
+            },
+            {
+              "Label": "itemId"
+            }
+          ],
+          "query": [],
+          "greedy_labels": []
+        },
+        "status": 200,
+        "input": "example.service#UpdateItemInput",
+        "output": "example.service#UpdateItemOutput",
+        "errors": [
+          "example.service#ResourceNotFoundException",
+          "crucible.errors#ValidationException",
+          "crucible.errors#InternalServerException",
+          "crucible.errors#UnknownOperationException"
+        ],
+        "readonly": false,
+        "idempotent": true,
+        "idempotency_token": null,
+        "paginated": null,
+        "examples": [],
+        "request": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [
+            "itemId"
+          ],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "name",
+            "description"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "response": {
+          "timestamp_formats": {},
+          "header_encodings": {},
+          "labels": [],
+          "query": [],
+          "headers": [],
+          "query_params": null,
+          "prefix_headers": [],
+          "response_code": null,
+          "body": [
+            "item"
+          ],
+          "event_stream": null,
+          "payload": null
+        },
+        "traits": {}
+      }
+    ],
+    "resources": {},
+    "resource_roots": [],
+    "resource_references": {},
+    "shapes": {
+      "crucible.errors#InternalServerException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "retryAfterSeconds",
+              "wire_name": "retryAfterSeconds",
+              "target": "smithy.api#Integer",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "InternalServerException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "InternalServerException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Server",
+            "status": 500,
+            "retryable": {
+              "throttling": false
+            },
+            "headers": [
+              {
+                "member": "retryAfterSeconds",
+                "name": "Retry-After"
+              }
+            ],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "An unexpected server failure. Its message never exposes the underlying cause.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "crucible.errors#UnknownOperationException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "UnknownOperationException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "UnknownOperationException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Client",
+            "status": 404,
+            "retryable": null,
+            "headers": [],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "No operation matches the request's method and path.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "crucible.errors#ValidationException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "reason",
+              "wire_name": "reason",
+              "target": "crucible.errors#ValidationExceptionReason",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "fieldList",
+              "wire_name": "fieldList",
+              "target": "crucible.errors#ValidationExceptionFieldList",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "ValidationException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "ValidationException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Client",
+            "status": 400,
+            "retryable": null,
+            "headers": [],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "A request cannot be parsed or does not satisfy the service's input model.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "crucible.errors#ValidationExceptionField": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "name",
+              "wire_name": "name",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": "A request field that failed validation.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "crucible.errors#ValidationExceptionFieldList": {
+        "List": {
+          "internal": false,
+          "sensitive": false,
+          "sparse": false,
+          "is_set": false,
+          "member": {
+            "internal": false,
+            "sensitive": false,
+            "event_binding": null,
+            "name": "member",
+            "wire_name": "member",
+            "target": "crucible.errors#ValidationExceptionField",
+            "required": false,
+            "default": null,
+            "wire_default": null,
+            "client_optional": false,
+            "idempotency_token": false,
+            "mutability": null,
+            "constraints": {
+              "length": null,
+              "range": null,
+              "pattern": null,
+              "unique_items": false
+            },
+            "timestamp_format": null,
+            "wire_timestamp_format": "date-time",
+            "docs": null,
+            "notes": {
+              "deprecated": null,
+              "since": null,
+              "unstable": false,
+              "external_docs": {}
+            },
+            "traits": {}
+          },
+          "constraints": {
+            "length": null,
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "crucible.errors#ValidationExceptionReason": {
+        "Enum": {
+          "internal": false,
+          "sensitive": false,
+          "values": [
+            {
+              "internal": false,
+              "name": "UNKNOWN_OPERATION",
+              "value": "unknownOperation",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "name": "CANNOT_PARSE",
+              "value": "cannotParse",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "name": "FIELD_VALIDATION_FAILED",
+              "value": "fieldValidationFailed",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "name": "OTHER",
+              "value": "other",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "docs": "A machine-readable reason; clients never need to parse message text.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ClientToken": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": {
+              "min": 1,
+              "max": 128
+            },
+            "range": null,
+            "pattern": "^[!-~]+$",
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ConflictException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "resourceId",
+              "wire_name": "resourceId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "resourceType",
+              "wire_name": "resourceType",
+              "target": "example.service#ResourceType",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "ConflictException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "ConflictException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Client",
+            "status": 409,
+            "retryable": null,
+            "headers": [],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "A client token was reused with different item fields.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#CreateItemInput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": true,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "name",
+              "wire_name": "name",
+              "target": "example.service#ItemName",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 100
+                },
+                "range": null,
+                "pattern": "^.*\\S.*$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "description",
+              "wire_name": "description",
+              "target": "example.service#ItemDescription",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": null,
+                  "max": 1000
+                },
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "clientToken",
+              "wire_name": "clientToken",
+              "target": "example.service#ClientToken",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": true,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 128
+                },
+                "range": null,
+                "pattern": "^[!-~]+$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#CreateItemOutput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "item",
+              "wire_name": "item",
+              "target": "example.service#ItemDetails",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#DeleteItemInput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": true,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "itemId",
+              "wire_name": "itemId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#GetItemInput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": true,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "itemId",
+              "wire_name": "itemId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#GetItemOutput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "item",
+              "wire_name": "item",
+              "target": "example.service#ItemDetails",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ItemDescription": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": {
+              "min": null,
+              "max": 1000
+            },
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ItemDetails": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "itemId",
+              "wire_name": "itemId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "name",
+              "wire_name": "name",
+              "target": "example.service#ItemName",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 100
+                },
+                "range": null,
+                "pattern": "^.*\\S.*$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "description",
+              "wire_name": "description",
+              "target": "example.service#ItemDescription",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": null,
+                  "max": 1000
+                },
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ItemId": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": {
+              "min": 36,
+              "max": 36
+            },
+            "range": null,
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ItemList": {
+        "List": {
+          "internal": false,
+          "sensitive": false,
+          "sparse": false,
+          "is_set": false,
+          "member": {
+            "internal": false,
+            "sensitive": false,
+            "event_binding": null,
+            "name": "member",
+            "wire_name": "member",
+            "target": "example.service#ItemDetails",
+            "required": false,
+            "default": null,
+            "wire_default": null,
+            "client_optional": false,
+            "idempotency_token": false,
+            "mutability": null,
+            "constraints": {
+              "length": null,
+              "range": null,
+              "pattern": null,
+              "unique_items": false
+            },
+            "timestamp_format": null,
+            "wire_timestamp_format": "date-time",
+            "docs": null,
+            "notes": {
+              "deprecated": null,
+              "since": null,
+              "unstable": false,
+              "external_docs": {}
+            },
+            "traits": {}
+          },
+          "constraints": {
+            "length": null,
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ItemName": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": {
+              "min": 1,
+              "max": 100
+            },
+            "range": null,
+            "pattern": "^.*\\S.*$",
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ListItemsInput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": true,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "nextToken",
+              "wire_name": "nextToken",
+              "target": "example.service#NextToken",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 64
+                },
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "maxResults",
+              "wire_name": "maxResults",
+              "target": "smithy.api#Integer",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": {
+                  "min": 1,
+                  "max": 100
+                },
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ListItemsOutput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "items",
+              "wire_name": "items",
+              "target": "example.service#ItemList",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "nextToken",
+              "wire_name": "nextToken",
+              "target": "example.service#NextToken",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 64
+                },
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#NextToken": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": {
+              "min": 1,
+              "max": 64
+            },
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ResourceNotFoundException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "resourceId",
+              "wire_name": "resourceId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "resourceType",
+              "wire_name": "resourceType",
+              "target": "example.service#ResourceType",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "ResourceNotFoundException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "ResourceNotFoundException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Client",
+            "status": 404,
+            "retryable": null,
+            "headers": [],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "The requested item does not exist.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ResourceType": {
+        "Enum": {
+          "internal": false,
+          "sensitive": false,
+          "values": [
+            {
+              "internal": false,
+              "name": "ITEM",
+              "value": "Item",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#ServiceQuotaExceededException": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "message",
+              "wire_name": "message",
+              "target": "smithy.api#String",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "resourceType",
+              "wire_name": "resourceType",
+              "target": "example.service#ResourceType",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": {
+            "protocol_headers": {
+              "Content-Type": "application/json"
+            },
+            "body_discriminator": "ServiceQuotaExceededException",
+            "discriminator_header": "X-Crucible-Error",
+            "timestamp_formats": {},
+            "wire_code": "ServiceQuotaExceededException",
+            "payload": null,
+            "header_encodings": {},
+            "fault": "Client",
+            "status": 402,
+            "retryable": null,
+            "headers": [],
+            "prefix_headers": [],
+            "response_code": null
+          },
+          "docs": "The in-memory item or create-receipt limit was reached.",
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#UpdateItemInput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": true,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "itemId",
+              "wire_name": "itemId",
+              "target": "example.service#ItemId",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 36,
+                  "max": 36
+                },
+                "range": null,
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "name",
+              "wire_name": "name",
+              "target": "example.service#ItemName",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": 1,
+                  "max": 100
+                },
+                "range": null,
+                "pattern": "^.*\\S.*$",
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            },
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "description",
+              "wire_name": "description",
+              "target": "example.service#ItemDescription",
+              "required": false,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": {
+                  "min": null,
+                  "max": 1000
+                },
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "example.service#UpdateItemOutput": {
+        "Structure": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "strict": false,
+          "input": false,
+          "members": [
+            {
+              "internal": false,
+              "sensitive": false,
+              "event_binding": null,
+              "name": "item",
+              "wire_name": "item",
+              "target": "example.service#ItemDetails",
+              "required": true,
+              "default": null,
+              "wire_default": null,
+              "client_optional": false,
+              "idempotency_token": false,
+              "mutability": null,
+              "constraints": {
+                "length": null,
+                "range": null,
+                "pattern": null,
+                "unique_items": false
+              },
+              "timestamp_format": null,
+              "wire_timestamp_format": "date-time",
+              "docs": null,
+              "notes": {
+                "deprecated": null,
+                "since": null,
+                "unstable": false,
+                "external_docs": {}
+              },
+              "traits": {}
+            }
+          ],
+          "error": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "smithy.api#Integer": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "Integer",
+          "constraints": {
+            "length": null,
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      },
+      "smithy.api#String": {
+        "Simple": {
+          "internal": false,
+          "sensitive": false,
+          "streaming": false,
+          "requires_length": false,
+          "kind": "String",
+          "constraints": {
+            "length": null,
+            "range": null,
+            "pattern": null,
+            "unique_items": false
+          },
+          "timestamp_format": null,
+          "docs": null,
+          "notes": {
+            "deprecated": null,
+            "since": null,
+            "unstable": false,
+            "external_docs": {}
+          },
+          "traits": {}
+        }
+      }
+    },
+    "traits": {},
+    "renames": {},
+    "versions": [],
+    "api_version": "1"
+  }
+}

@@ -13,7 +13,8 @@ model/
   api/crucible.toml       # Package manifest: namespace, imports, API policy, baseline
   api/service.cru         # API sources, separate from Rust code
   api/migrations.cru      # How release 2 still serves release 1's clients
-  api/releases/1/         # Release 1, frozen: the compatibility baseline
+  api/releases/1.json     # Release 1, frozen: the compatibility baseline
+  api/releases/crucible.lock # Each frozen release's checksum
   build.rs                # Compile once; publish model, Rust SDK, Java SDK, OpenAPI
   src/lib.rs              # Empty Cargo package scaffold
 service/
@@ -138,7 +139,7 @@ The OpenAPI document describes the current release (its `info.version` is the mo
 
 CDK, Terraform/OpenTofu, and service CLI outputs use `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. The API reference output (`model.docs(...)`), provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
 
-A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/build-outputs.md) for the complete feature list, output settings, and examples.
+A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
 ## Running the Kotlin client with Gradle
 
@@ -209,7 +210,7 @@ migration "2" from "1" {
 }
 ```
 
-`model/api/releases/1/` is release 1, frozen, and `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen.
+`model/api/releases/1.json` is release 1, frozen: a snapshot of its compiled model, which builds read back without recompiling it. `releases/crucible.lock` records its checksum, so a build refuses a release that was edited ([releases](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-policy.md#releases)). `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen.
 
 The service serves both releases from the same handlers. A request names its release in the `Crucible-Version` header. A release 1 request is read with release 1's types, converted to release 2's (`description` becomes `notes`, and a missing `maxResults` becomes 20, release 1's default), handled, and its response converted back. Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`. Try the last two requests in `service/requests.http`, or:
 
@@ -217,11 +218,11 @@ The service serves both releases from the same handlers. A request names its rel
 curl -H 'Crucible-Version: 1' 'http://127.0.0.1:8080/items'
 ```
 
-The generated SDKs do not send their release yet, so `service/src/main.rs` serves a request without the header at the current release (`Unversioned::Resolve`), which is what the release 2 SDKs need. Until they do, only callers that send the header themselves, such as raw HTTP, reach release 1; an SDK built for release 1 would be served as release 2. Once clients send their release, the framework's default, the oldest release, suits callers that predate versions.
+The generated SDKs send their release in that header, so an SDK built for release 1 keeps being served as release 1. `service/src/main.rs` serves a request without the header, such as plain curl, at the current release (`Unversioned::Resolve`); the framework's default, the oldest release, suits callers that predate versions.
 
 To release a breaking change of your own:
 
-1. Freeze the current release before changing it: `crucible freeze model/api`, using the CLI from Crucible's repository (`cargo run -p crucible-cli -- freeze <path>`). It copies the sources to `model/api/releases/<version>`.
+1. Freeze the current release before changing it: `crucible freeze model/api`, using the CLI from Crucible's repository (`cargo run -p crucible-cli -- freeze <path>`). It writes `model/api/releases/<version>.json` and records it in `releases/crucible.lock`; commit both. Forgot to freeze a release that has shipped? `crucible freeze model/api --from <git tag or commit>` freezes it from history.
 2. Point `[model.baseline] path` at that frozen release, bump `version` in `service.cru`, and make the change.
 3. Declare it in a new `migration "<new>" from "<old>" { .. }`. Until you do, the build lists every undeclared breaking change.
 
@@ -230,11 +231,11 @@ Besides `rename`, `require .. default` and `sunset`, a migration can:
 - `move` an operation's route;
 - mark a `behavior` change, which a handler branches on with `self.context().api_version()`.
 
-Changes the framework cannot convert by itself, `reshape`, `retype` and `require .. by hook`, become methods of a generated `my_service::versions::v1::Migration` trait that the service implements. So does `remove operation`, whose handler keeps serving older releases. See Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/api-versions.md).
+Changes the framework cannot convert by itself, `reshape`, `retype` and `require .. by hook`, become methods of a generated `my_service::versions::v1::Migration` trait that the service implements. So does `remove operation`, whose handler keeps serving older releases. See Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-versions.md).
 
 ## API policy and compatibility
 
-`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/f753776a0246bfdd35b5413fadafeb703e9edd02/docs/api-policy.md) for severities and exact, documented exceptions.
+`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-policy.md) for severities and exact, documented exceptions.
 
 The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 

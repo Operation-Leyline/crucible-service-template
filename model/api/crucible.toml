@@ -11,7 +11,7 @@ imports = ["crucible.errors"]
 # breaking change against it compiles only when a `migration` declares it
 # (migrations.cru), and the service keeps serving release 1's clients.
 [model.baseline]
-path = "releases/1"
+path = "releases/1.json"
 
 [rules.naming]
 severity = "error"
