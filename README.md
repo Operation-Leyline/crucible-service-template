@@ -5,13 +5,12 @@ A monorepo template with a language-neutral model in Crucible's modelling langua
 ```text
 Cargo.toml                # Cargo workspace and shared Crucible version
 Cargo.lock                # Shared dependency lockfile
-crucible.toml             # Build-time API rules and compatibility policy
 .github/workflows/
   api-diff.yml            # PR contract compatibility checks
   sdk.yml                 # Clean builds and both native consumers over HTTP
 model/
   Cargo.toml              # Language-neutral model package
-  api/crucible.toml       # Model package manifest: namespace and imports
+  api/crucible.toml       # Package manifest: namespace, imports and API policy
   api/service.cru         # API sources, separate from Rust code
   build.rs                # Compile once; publish model, Rust SDK, Java SDK
   src/lib.rs              # Empty Cargo package scaffold
@@ -81,16 +80,13 @@ The service depends directly on `service-model` and has `crucible-build` as a bu
 ```rust
 // service/build.rs
 fn main() {
-    crucible_build::model("service_model")
-        .server()
-        .policy("../crucible.toml")
-        .generate();
+    crucible_build::model("service_model").server().generate();
 }
 ```
 
 `service/src/main.rs` calls `crucible_server_runtime_rust::include_service!();` at crate root. For the model's `MyService`, this declares `pub mod my_service`. This generates request/response models, modeled errors, operation traits, and operation registration inside the service crate. Handlers import `crate::my_service::{GetItemInput, GetItemOutput, GetItemOperation, ResourceNotFoundException}` directly; no separate server-contract crate is needed. The helper compiles the published `.cru` package directory; it is fast and needs no external tools.
 
-A server that owns its sources can instead call `crucible_build::model("api").server().policy("crucible.toml").generate()` on a local `.cru` package with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
+A server that owns its sources can instead call `crucible_build::model("api").server().generate()` on a local `.cru` package with the same inclusion macro. That direct setup does not require a model Cargo package. A separate contract crate is optional if multiple Rust crates need the generated server API.
 
 ## Generating both SDK packages
 
@@ -100,9 +96,7 @@ The shared `crucible-build` dependency enables its `java` feature. The complete 
 
 ```rust
 fn main() {
-    let model = crucible_build::model("api")
-        .policy("../crucible.toml")
-        .compile();
+    let model = crucible_build::model("api").compile();
     model.publish();
     model
         .rust_client("rust")
@@ -193,7 +187,7 @@ From the repository root, run `cargo fmt --all`, `cargo clippy --workspace --all
 
 ## API policy and compatibility
 
-`crucible.toml` selects naming and path conventions enforced by every Cargo build. Documentation requirements start as warnings. The model and service build scripts select this required file with `.policy("../crucible.toml")`; invalid rules, missing config, and error findings fail generation. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/a36ddee1e052cd61e3e5c222fe7e31bea07e4ede/docs/api-policy.md) for severities and exact, documented exceptions.
+`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/254d217f33c52c358923afe260ed122274f0262b/docs/api-policy.md) for severities and exact, documented exceptions.
 
 The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 

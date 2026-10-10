@@ -1,5 +1,29 @@
+# The model package: its namespace and imports, and the API policy every
+# build applies (docs/api-policy.md in Crucible). A check written as a table
+# sets its own severity: members = { case = "camelCase", severity = "warning" }.
 [model]
 namespace = "example.service"
 language = 1
 sources = ["."]
 imports = ["crucible.errors"]
+
+[rules.naming]
+severity = "error"
+operations = "PascalCase"
+shapes = "PascalCase"
+members = "camelCase"
+enum_values = "SCREAMING_SNAKE_CASE"
+
+[rules.paths]
+severity = "error"
+segment_case = "kebab-case"
+parameter_case = "camelCase"
+
+[rules.documentation]
+severity = "warning"
+targets = ["operations", "errors"]
+
+[compatibility]
+severity = "error"
+wire = true
+sdk_source = true

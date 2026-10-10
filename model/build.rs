@@ -1,9 +1,8 @@
 fn main() {
     // `api/` is a Crucible language package: compiled straight to the IR, with
     // no Smithy compiler or JVM involved.
-    let model = crucible_build::model("api")
-        .policy("../crucible.toml")
-        .compile();
+    // `api/crucible.toml` holds the package's API policy; the build applies it.
+    let model = crucible_build::model("api").compile();
     model.publish();
     model
         .rust_client("rust")
