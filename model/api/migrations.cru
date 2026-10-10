@@ -13,8 +13,9 @@ migration "2" from "1" {
     rename CreateItem.input.description -> notes
     rename UpdateItem.input.description -> notes
 
-    // A page size is required now; a release 1 request without one gets 25.
-    require ListItems.input.maxResults default 25
+    // A page size is required now; a release 1 request without one gets 20,
+    // release 1's own default, so its clients see no difference.
+    require ListItems.input.maxResults default 20
 
     // Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`.
     sunset "2027-12-31"

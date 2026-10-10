@@ -67,7 +67,7 @@ def main():
             query = {"maxResults": 2, "nextToken": page["nextToken"]}
         assert set(created).issubset(seen) and seen == sorted(set(seen)), seen
         for body in [{"name": ""}, {"name": " "}, {"name": "x" * 101}, {"name": "valid"},
-                     {"name": "valid", "clientToken": "contains space"}, {"name": "valid", "description": "x" * 1001}]:
+                     {"name": "valid", "clientToken": "contains space"}, {"name": "valid", "notes": "x" * 1001, "clientToken": str(uuid.uuid4())}]:
             validation = error("POST", "/items", body, 400, "ValidationException")
             assert validation["reason"] == "fieldValidationFailed" and validation["fieldList"]
         assert error("POST", "/items", b"{", 400, "ValidationException")["reason"] == "cannotParse"
@@ -79,8 +79,12 @@ def main():
         created.append(response["item"]["itemId"])
         headers = {key.lower(): value for key, value in headers.items()}
         assert headers["crucible-version"] == "1" and headers["sunset"] == "Fri, 31 Dec 2027 00:00:00 GMT", headers
+        status, page, _ = request("GET", "/items?maxResults=100", version="1")
+        assert status == 200, page
+        listed = [entry for entry in page["items"] if entry["itemId"] == created[-1]]
+        assert listed and listed[0]["description"] == "old name" and "notes" not in listed[0], page
         status, page, _ = request("GET", "/items", version="1")
-        assert status == 200 and len(page["items"]) <= 25, page
+        assert status == 200 and len(page["items"]) <= 20, page
         error("GET", "/items", None, 400, "ValidationException")
         assert request("GET", "/items", version="9")[0] == 400
         error("GET", "/items?maxResults=101", None, 400, "ValidationException")

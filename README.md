@@ -204,26 +204,26 @@ migration "2" from "1" {
     rename ItemDetails.description -> notes
     rename CreateItem.input.description -> notes
     rename UpdateItem.input.description -> notes
-    require ListItems.input.maxResults default 25
+    require ListItems.input.maxResults default 20
     sunset "2027-12-31"
 }
 ```
 
-`model/api/releases/1/` is release 1, frozen, and `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen. With the IntelliJ plugin, both show in the editor as you type.
+`model/api/releases/1/` is release 1, frozen, and `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen.
 
-The service serves both releases from the same handlers. A request names its release in the `Crucible-Version` header. A release 1 request is read with release 1's types, converted to release 2's (`description` becomes `notes`, and a missing `maxResults` becomes 25), handled, and its response converted back. Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`. Try the last two requests in `service/requests.http`, or:
+The service serves both releases from the same handlers. A request names its release in the `Crucible-Version` header. A release 1 request is read with release 1's types, converted to release 2's (`description` becomes `notes`, and a missing `maxResults` becomes 20, release 1's default), handled, and its response converted back. Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`. Try the last two requests in `service/requests.http`, or:
 
 ```sh
 curl -H 'Crucible-Version: 1' 'http://127.0.0.1:8080/items'
 ```
 
-The generated SDKs do not send their release yet, so `service/src/main.rs` serves a request without the header at the current release (`Unversioned::Resolve`). Once clients send theirs, the framework's default serves an unversioned request at the oldest release, as built for clients that predate versions.
+The generated SDKs do not send their release yet, so `service/src/main.rs` serves a request without the header at the current release (`Unversioned::Resolve`), which is what the release 2 SDKs need. Until they do, only callers that send the header themselves, such as raw HTTP, reach release 1; an SDK built for release 1 would be served as release 2. Once clients send their release, the framework's default, the oldest release, suits callers that predate versions.
 
 To release a breaking change of your own:
 
-1. Freeze the current release before changing it: `crucible freeze model/api`, using the CLI from Crucible's repository (`cargo run -p crucible-cli -- freeze <path>`). It writes `model/api/releases/<version>`.
-2. Point `[model.baseline] path` at the new release, bump `version` in `service.cru`, and make the change.
-3. Declare it in a new `migration "<new>" from "<old>" { .. }`. The build lists every breaking change and what step declares it.
+1. Freeze the current release before changing it: `crucible freeze model/api`, using the CLI from Crucible's repository (`cargo run -p crucible-cli -- freeze <path>`). It copies the sources to `model/api/releases/<version>`.
+2. Point `[model.baseline] path` at that frozen release, bump `version` in `service.cru`, and make the change.
+3. Declare it in a new `migration "<new>" from "<old>" { .. }`. Until you do, the build lists every undeclared breaking change.
 
 Besides `rename`, `require .. default` and `sunset`, a migration can:
 - `add` an enum value or an operation error, with the value or error older clients see instead;

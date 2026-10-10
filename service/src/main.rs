@@ -12,8 +12,8 @@ async fn main() -> Result<(), crucible_server_runtime_rust::host::BoxError> {
     let service = Crucible::builder(my_service::operations(Arc::new(Service::default())))
         .protocol(JsonProtocol)
         // A request without `Crucible-Version` is served at the current
-        // release: the generated SDKs do not send their version yet.
-        // Release 1 clients name it.
+        // release: the generated SDKs do not send their release yet. Until
+        // they do, only callers that send the header reach release 1.
         .api_version(Unversioned::Resolve(Arc::new(|_| {
             Some(my_service::versions::CURRENT.name().to_owned())
         })))
