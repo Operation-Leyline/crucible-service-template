@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "compiler": "crucible 0.4.0",
+  "compiler": "crucible 0.7.0",
   "service": {
     "cors": null,
     "internal": false,
@@ -66,7 +66,7 @@
         "endpoint_parameters": {},
         "waiters": {},
         "resource": "example.service#Item",
-        "docs": "Creates an item; retries with the same token and fields return the original result for eight hours.",
+        "docs": "Creates an item; retries with the same token and fields return the original result for 24 hours.",
         "notes": {
           "deprecated": null,
           "since": null,
@@ -87,7 +87,6 @@
         "input": "example.service#CreateItemInput",
         "output": "example.service#CreateItemOutput",
         "errors": [
-          "example.service#ConflictException",
           "example.service#ServiceQuotaExceededException",
           "crucible.errors#ValidationException",
           "crucible.errors#InternalServerException",
@@ -313,7 +312,7 @@
         "endpoint_parameters": {},
         "waiters": {},
         "resource": "example.service#Item",
-        "docs": "Lists items in identifier order with opaque pagination tokens.",
+        "docs": "Lists items in identifier order with sealed pagination tokens.",
         "notes": {
           "deprecated": null,
           "since": null,
@@ -1004,135 +1003,6 @@
           "traits": {}
         }
       },
-      "example.service#ConflictException": {
-        "Structure": {
-          "internal": false,
-          "sensitive": false,
-          "streaming": false,
-          "strict": false,
-          "input": false,
-          "members": [
-            {
-              "internal": false,
-              "sensitive": false,
-              "event_binding": null,
-              "name": "message",
-              "wire_name": "message",
-              "target": "smithy.api#String",
-              "required": true,
-              "default": null,
-              "wire_default": null,
-              "client_optional": false,
-              "idempotency_token": false,
-              "mutability": null,
-              "constraints": {
-                "length": null,
-                "range": null,
-                "pattern": null,
-                "unique_items": false
-              },
-              "timestamp_format": null,
-              "wire_timestamp_format": "date-time",
-              "docs": null,
-              "notes": {
-                "deprecated": null,
-                "since": null,
-                "unstable": false,
-                "external_docs": {}
-              },
-              "traits": {}
-            },
-            {
-              "internal": false,
-              "sensitive": false,
-              "event_binding": null,
-              "name": "resourceId",
-              "wire_name": "resourceId",
-              "target": "example.service#ItemId",
-              "required": true,
-              "default": null,
-              "wire_default": null,
-              "client_optional": false,
-              "idempotency_token": false,
-              "mutability": null,
-              "constraints": {
-                "length": {
-                  "min": 36,
-                  "max": 36
-                },
-                "range": null,
-                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                "unique_items": false
-              },
-              "timestamp_format": null,
-              "wire_timestamp_format": "date-time",
-              "docs": null,
-              "notes": {
-                "deprecated": null,
-                "since": null,
-                "unstable": false,
-                "external_docs": {}
-              },
-              "traits": {}
-            },
-            {
-              "internal": false,
-              "sensitive": false,
-              "event_binding": null,
-              "name": "resourceType",
-              "wire_name": "resourceType",
-              "target": "example.service#ResourceType",
-              "required": true,
-              "default": null,
-              "wire_default": null,
-              "client_optional": false,
-              "idempotency_token": false,
-              "mutability": null,
-              "constraints": {
-                "length": null,
-                "range": null,
-                "pattern": null,
-                "unique_items": false
-              },
-              "timestamp_format": null,
-              "wire_timestamp_format": "date-time",
-              "docs": null,
-              "notes": {
-                "deprecated": null,
-                "since": null,
-                "unstable": false,
-                "external_docs": {}
-              },
-              "traits": {}
-            }
-          ],
-          "error": {
-            "protocol_headers": {
-              "Content-Type": "application/json"
-            },
-            "body_discriminator": "ConflictException",
-            "discriminator_header": "X-Crucible-Error",
-            "timestamp_formats": {},
-            "wire_code": "ConflictException",
-            "payload": null,
-            "header_encodings": {},
-            "fault": "Client",
-            "status": 409,
-            "retryable": null,
-            "headers": [],
-            "prefix_headers": [],
-            "response_code": null
-          },
-          "docs": "A client token was reused with different item fields.",
-          "notes": {
-            "deprecated": null,
-            "since": null,
-            "unstable": false,
-            "external_docs": {}
-          },
-          "traits": {}
-        }
-      },
       "example.service#CreateItemInput": {
         "Structure": {
           "internal": false,
@@ -1153,7 +1023,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": 1,
@@ -1186,7 +1056,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": null,
@@ -1538,7 +1408,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": 1,
@@ -1571,7 +1441,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": null,
@@ -1734,7 +1604,7 @@
               "constraints": {
                 "length": {
                   "min": 1,
-                  "max": 64
+                  "max": 1024
                 },
                 "range": null,
                 "pattern": null,
@@ -1850,7 +1720,7 @@
               "constraints": {
                 "length": {
                   "min": 1,
-                  "max": 64
+                  "max": 1024
                 },
                 "range": null,
                 "pattern": null,
@@ -1889,7 +1759,7 @@
           "constraints": {
             "length": {
               "min": 1,
-              "max": 64
+              "max": 1024
             },
             "range": null,
             "pattern": null,
@@ -2150,7 +2020,7 @@
             "prefix_headers": [],
             "response_code": null
           },
-          "docs": "The in-memory item or create-receipt limit was reached.",
+          "docs": "The in-memory item limit was reached.",
           "notes": {
             "deprecated": null,
             "since": null,
@@ -2213,7 +2083,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": 1,
@@ -2246,7 +2116,7 @@
               "wire_default": null,
               "client_optional": false,
               "idempotency_token": false,
-              "mutability": null,
+              "mutability": "Full",
               "constraints": {
                 "length": {
                   "min": null,

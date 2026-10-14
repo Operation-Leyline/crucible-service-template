@@ -40,7 +40,7 @@ You need Rust and GitHub read access to the private [Crucible repository](https:
 3. Let Cargo finish loading, then run `service/src/main.rs`.
 4. Open `service/requests.http` and run the requests in order. The create request saves `itemId` for subsequent requests using a [response handler](https://www.jetbrains.com/help/idea/http-response-handling-examples.html).
 
-The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address.
+The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address, and `PAGE_TOKEN_SECRET` (32 or more random bytes, such as `openssl rand -hex 32`) to keep page tokens valid across restarts and instances.
 
 The model compiles in Rust inside the build script. No Smithy CLI, JVM, or runtime download is involved.
 
@@ -140,7 +140,7 @@ The OpenAPI document describes the current release (its `info.version` is the mo
 
 CDK, Terraform/OpenTofu, and service CLI outputs use `model.cdk(...)`, `model.terraform(...)`, and `model.cli(...)` with their matching features. CDK and Terraform also require explicit provisioning bindings. The API reference output (`model.docs(...)`), provisioning (CDK, Terraform) and the API Explorer still read Smithy sources, so they report an error for a `.cru` model for now.
 
-A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/build-outputs.md) for the complete feature list, output settings, and examples.
+A CDK output can configure Python, Java, .NET, and Go packages together using `.python(...)`, `.java(...)`, `.dotnet(...)`, and `.go(...)`. These are jsii targets within one construct library; `npm run build` and `npm run package` build its language packages. See [Crucible's generation guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/build-outputs.md) for the complete feature list, output settings, and examples.
 
 ## Running the Kotlin client with Gradle
 
@@ -181,17 +181,17 @@ Set `CRUCIBLE_ENDPOINT` to test another endpoint. This test creates two temporar
 | DeleteItem | `DELETE /items/{itemId}` | 204, empty body |
 | ListItems | `GET /items?maxResults=20` | 200, items and optional nextToken |
 
-Creation accepts `name`, optional `notes`, and `clientToken`. Provide a token when using raw HTTP; generated SDKs can fill it automatically. Repeating an identical create with the same token returns the original result. Changed fields with that token return `ConflictException` (409), including the conflicting item ID. Receipts last eight hours, including after deletion; replaying one does not recreate a deleted item.
+Creation accepts `name`, optional `notes`, and `clientToken`. Provide a token when using raw HTTP; generated SDKs fill it automatically. The framework's `Idempotency` interceptor (in `service/src/main.rs`) enforces it: a create without a token is a `ValidationException` (400), a retry with the same token and fields replays the original result for 24 hours, even after the item is deleted, and changed fields with that token, or a retry while the first request is still running, return the framework's `ConflictException` (409). The handler calls `idempotency::commit()` before it writes, so a request lost after the write is refused on retry rather than creating a second item.
 
 Update replaces the editable fields. Omitting `notes` clears them. Get and update return `ResourceNotFoundException` (404) for a missing item. Delete succeeds even if the item is already absent.
 
-List returns at most `maxResults` items (required, maximum 100), ordered by immutable ID. Pass `nextToken` to continue; page size can change between requests. Tokens are opaque references, expire after 15 minutes, and become invalid on restart. At most 1,024 cursors are retained; issuing another evicts the oldest. Invalid tokens return `ValidationException` (400).
+List returns at most `maxResults` items (required, maximum 100), ordered by immutable ID. Pass `nextToken` to continue; page size can change between requests. The framework's `PageTokens` interceptor seals each token around the last item ID shown (`page_tokens::issue` and `resume` in the handler): the client cannot read or edit it, it opens only for the same listing, it expires after 24 hours, and nothing is stored. A token that does not open returns `ValidationException` (400).
 
-All handlers share one store. Items, create receipts, and cursors disappear when the process stops. The example permits 1,000 items and 10,000 unexpired create receipts; reaching either limit returns `ServiceQuotaExceededException` (402). It has no authentication and is intended for local learning. Replace the store with durable storage before running multiple instances.
+All handlers share one store. Items and idempotency records disappear when the process stops. The example permits 1,000 items; reaching the limit returns `ServiceQuotaExceededException` (402). It has no authentication, so both interceptors bind tokens to one anonymous caller (`allow_anonymous`); with authentication, pass `crucible_auth::Principal::caller_binding_of` instead. It is intended for local learning. Before running multiple instances, replace the item store with durable storage, `MemoryIdempotencyStore` with an `IdempotencyStore` over a shared table (Crucible's [framework guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/framework.md#idempotency-tokens) describes one on DynamoDB), and set `PAGE_TOKEN_SECRET`.
 
 ## Changing the example
 
-`model/api/service.cru` defines the resource, HTTP bindings, constraints, pagination, and exceptions. Members are required unless written `name?:`, operations attach to `Item` with role verbs such as `creates` and `reads`, and URI labels bind input members by name. `model/api/crucible.toml` names the namespace and imports Crucible's standard errors. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
+`model/api/service.cru` defines the resource, HTTP bindings, constraints, pagination, and exceptions. Members are required unless written `name?:`, operations attach to `Item` with role verbs such as `creates` and `reads`, and URI labels bind input members by name. `Item` declares its properties; inputs and the `ItemDetails` view bind them with `$name`, and the compiler checks each binding. `model/api/crucible.toml` names the namespace and imports Crucible's standard errors. `service/src/operations/item/` has one handler per operation. `service/src/store/` owns state and atomic mutations.
 
 Edit the model and implement the generated traits. `model/build.rs` compiles and validates the model, then exports complete Rust and Java SDK packages; `service/build.rs` generates server bindings for the `my_service` namespace in `service/src/main.rs`. A model error fails the build with every diagnostic, each pointing at its `.cru` file, line, and column. Generated output stays under the root `target/` directory.
 
@@ -211,7 +211,7 @@ migration "2" from "1" {
 }
 ```
 
-`model/api/releases/1.json` is release 1, frozen: a snapshot of its compiled model, which builds read back without recompiling it. `releases/crucible.lock` records its checksum, so a build refuses a release that was edited ([releases](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-policy.md#releases)). `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen.
+`model/api/releases/1.json` is release 1, frozen: a snapshot of its compiled model, which builds read back without recompiling it. `releases/crucible.lock` records its checksum, so a build refuses a release that was edited ([releases](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-policy.md#releases)). `[model.baseline]` in `crucible.toml` points at it. Every build compares the model with that baseline. A breaking change no migration declares fails the build, and so does a step for a change that did not happen.
 
 The service serves both releases from the same handlers. A request names its release in the `Crucible-Version` header. A release 1 request is read with release 1's types, converted to release 2's (`description` becomes `notes`, and a missing `maxResults` becomes 20, release 1's default), handled, and its response converted back. Release 1 responses carry `Sunset: Fri, 31 Dec 2027 00:00:00 GMT`. Try the last two requests in `service/requests.http`, or:
 
@@ -232,11 +232,11 @@ Besides `rename`, `require .. default` and `sunset`, a migration can:
 - `move` an operation's route;
 - mark a `behavior` change, which a handler branches on with `self.context().api_version()`.
 
-Changes the framework cannot convert by itself, `reshape`, `retype` and `require .. by hook`, become methods of a generated `my_service::versions::v1::Migration` trait that the service implements. So does `remove operation`, whose handler keeps serving older releases. See Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-versions.md).
+Changes the framework cannot convert by itself, `reshape`, `retype` and `require .. by hook`, become methods of a generated `my_service::versions::v1::Migration` trait that the service implements. So does `remove operation`, whose handler keeps serving older releases. See Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-versions.md).
 
 ## API policy and compatibility
 
-`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/2572007dfe7145ede4cf79dd82591021e9b50772/docs/api-policy.md) for severities and exact, documented exceptions.
+`model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-policy.md) for severities and exact, documented exceptions.
 
 The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 

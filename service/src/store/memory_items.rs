@@ -1,99 +1,63 @@
 use crucible_server_runtime_rust::Result;
+use std::collections::BTreeMap;
 use std::ops::Bound::{Excluded, Unbounded};
 use std::sync::{Mutex, MutexGuard};
-use std::time::{Duration, Instant};
 
 use uuid::Uuid;
 
-use super::{create_receipt::CreateReceipt, page_cursor::PageCursor, state::State};
 use crate::my_service::{
-    ConflictException, ItemDetails, ListItemsOutput, ResourceNotFoundException, ResourceType,
-    ServiceQuotaExceededException, ValidationException, ValidationExceptionField,
-    ValidationExceptionReason,
+    ItemDetails, ResourceNotFoundException, ResourceType, ServiceQuotaExceededException,
 };
 
 const MAX_ITEMS: usize = 1_000;
-const MAX_RECEIPTS: usize = 10_000;
-const MAX_CURSORS: usize = 1_024;
-const RECEIPT_TTL: Duration = Duration::from_secs(8 * 60 * 60);
-const CURSOR_TTL: Duration = Duration::from_secs(15 * 60);
 
-/// Local example storage. One lock makes each mutation and retry check atomic.
+/// Local example storage, ordered by item ID so a page resumes after the
+/// last ID it showed. Retries and page tokens are the framework's
+/// (`Idempotency` and `PageTokens` in main.rs), so this only keeps items.
 #[derive(Default)]
 pub struct MemoryItems {
-    state: Mutex<State>,
+    items: Mutex<BTreeMap<String, ItemDetails>>,
+}
+
+/// One page of items, and the ID the next page starts after, if any.
+pub struct ItemPage {
+    pub items: Vec<ItemDetails>,
+    pub last: Option<String>,
 }
 
 impl MemoryItems {
-    fn lock(&self) -> Result<MutexGuard<'_, State>> {
-        self.state
+    fn lock(&self) -> Result<MutexGuard<'_, BTreeMap<String, ItemDetails>>> {
+        self.items
             .lock()
             .map_err(|_| crucible_server_runtime_rust::Error::internal("item store lock poisoned"))
     }
 
-    pub fn create(
-        &self,
-        name: String,
-        notes: Option<String>,
-        client_token: Option<String>,
-    ) -> Result<ItemDetails> {
-        let token = client_token.ok_or_else(|| {
-            invalid(
-                "clientToken",
-                "Provide a clientToken for safe create retries.",
-            )
-        })?;
-        let mut state = self.lock()?;
-        let now = Instant::now();
-        state.receipts.retain(|_, receipt| receipt.expires > now);
-        if let Some(receipt) = state.receipts.get(&token) {
-            if receipt.name != name || receipt.notes != notes {
-                return Err(ConflictException {
-                    message: "This clientToken was already used with different item fields.".into(),
-                    resource_id: receipt.item.item_id.clone(),
-                    resource_type: ResourceType::Item,
-                }
-                .into());
-            }
-            return Ok(receipt.item.clone());
-        }
-        if state.items.len() >= MAX_ITEMS || state.receipts.len() >= MAX_RECEIPTS {
+    /// Writes nothing when it fails.
+    pub fn create(&self, name: String, notes: Option<String>) -> Result<ItemDetails> {
+        let mut items = self.lock()?;
+        if items.len() >= MAX_ITEMS {
             return Err(ServiceQuotaExceededException {
-                message: "The local example's item or create-receipt limit has been reached."
-                    .into(),
+                message: "The local example's item limit has been reached.".into(),
                 resource_type: ResourceType::Item,
             }
             .into());
         }
         let item = ItemDetails {
             item_id: Uuid::new_v4().to_string(),
-            name: name.clone(),
-            notes: notes.clone(),
+            name,
+            notes,
         };
-        state.items.insert(item.item_id.clone(), item.clone());
-        state.receipts.insert(
-            token,
-            CreateReceipt {
-                name,
-                notes,
-                item: item.clone(),
-                expires: now + RECEIPT_TTL,
-            },
-        );
+        items.insert(item.item_id.clone(), item.clone());
         Ok(item)
     }
 
     pub fn get(&self, id: &str) -> Result<ItemDetails> {
-        self.lock()?
-            .items
-            .get(id)
-            .cloned()
-            .ok_or_else(|| missing(id))
+        self.lock()?.get(id).cloned().ok_or_else(|| missing(id))
     }
 
     pub fn update(&self, id: &str, name: String, notes: Option<String>) -> Result<ItemDetails> {
-        let mut state = self.lock()?;
-        let item = state.items.get_mut(id).ok_or_else(|| missing(id))?;
+        let mut items = self.lock()?;
+        let item = items.get_mut(id).ok_or_else(|| missing(id))?;
         item.name = name;
         item.notes = notes;
         Ok(item.clone())
@@ -101,62 +65,25 @@ impl MemoryItems {
 
     pub fn delete(&self, id: &str) -> Result<()> {
         // Repeated deletes have the same effect and remain safe to retry.
-        self.lock()?.items.remove(id);
+        self.lock()?.remove(id);
         Ok(())
     }
 
-    pub fn list(&self, token: Option<&str>, limit: usize) -> Result<ListItemsOutput> {
-        let mut state = self.lock()?;
-        let now = Instant::now();
-        state.cursors.retain(|_, cursor| cursor.expires > now);
-        let after = token
-            .map(|token| {
-                state
-                    .cursors
-                    .get(token)
-                    .map(|cursor| cursor.after.clone())
-                    .ok_or_else(|| {
-                        invalid("nextToken", "The pagination token is invalid or expired.")
-                    })
-            })
-            .transpose()?;
+    pub fn list(&self, after: Option<String>, limit: usize) -> Result<ItemPage> {
+        let items = self.lock()?;
         let start = after.map_or(Unbounded, Excluded);
-        let mut items: Vec<_> = state
-            .items
+        let mut page: Vec<_> = items
             .range((start, Unbounded))
             .take(limit + 1)
             .map(|(_, item)| item.clone())
             .collect();
-        let next_token = if items.len() > limit {
-            items.truncate(limit);
-            if state.cursors.len() >= MAX_CURSORS {
-                let oldest = state
-                    .cursors
-                    .iter()
-                    .min_by_key(|(_, cursor)| cursor.expires)
-                    .map(|(token, _)| token.clone());
-                if let Some(token) = oldest {
-                    state.cursors.remove(&token);
-                }
-            }
-            // Random references hide the cursor and reject client-constructed values.
-            let token = format!("v1-{}", Uuid::new_v4());
-            state.cursors.insert(
-                token.clone(),
-                PageCursor {
-                    after: items
-                        .last()
-                        .expect("positive modeled page size")
-                        .item_id
-                        .clone(),
-                    expires: now + CURSOR_TTL,
-                },
-            );
-            Some(token)
+        let last = if page.len() > limit {
+            page.truncate(limit);
+            page.last().map(|item| item.item_id.clone())
         } else {
             None
         };
-        Ok(ListItemsOutput { items, next_token })
+        Ok(ItemPage { items: page, last })
     }
 }
 
@@ -169,72 +96,21 @@ fn missing(id: &str) -> crucible_server_runtime_rust::Error {
     .into()
 }
 
-fn invalid(field: &str, message: &str) -> crucible_server_runtime_rust::Error {
-    ValidationException {
-        message: message.into(),
-        reason: ValidationExceptionReason::FieldValidationFailed,
-        field_list: Some(vec![ValidationExceptionField {
-            name: field.into(),
-            message: message.into(),
-        }]),
-    }
-    .into()
-}
-
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-    use std::thread;
-    use std::time::{Duration, Instant};
-
     use super::MemoryItems;
-    use crate::my_service::ValidationException;
 
     #[test]
-    fn concurrent_create_retries_have_one_result() {
-        let store = Arc::new(MemoryItems::default());
-        let requests: Vec<_> = (0..12)
-            .map(|_| {
-                let store = Arc::clone(&store);
-                thread::spawn(move || {
-                    store
-                        .create("Concurrent".into(), None, Some("same-token".into()))
-                        .unwrap()
-                        .item_id
-                })
-            })
-            .collect();
-        let ids: Vec<_> = requests
-            .into_iter()
-            .map(|request| request.join().unwrap())
-            .collect();
-        assert!(ids.iter().all(|id| id == &ids[0]));
-        assert_eq!(store.list(None, 100).unwrap().items.len(), 1);
-    }
-
-    #[test]
-    fn expired_pagination_references_are_rejected() {
+    fn pages_resume_after_the_last_item_shown() {
         let store = MemoryItems::default();
-        for index in 0..2 {
-            store
-                .create(
-                    format!("Item {index}"),
-                    None,
-                    Some(format!("token-{index}")),
-                )
-                .unwrap();
+        for index in 0..3 {
+            store.create(format!("Item {index}"), None).unwrap();
         }
-        let token = store.list(None, 1).unwrap().next_token.unwrap();
-        store
-            .state
-            .lock()
-            .unwrap()
-            .cursors
-            .get_mut(&token)
-            .unwrap()
-            .expires = Instant::now() - Duration::from_secs(1);
-        let error = store.list(Some(&token), 1).unwrap_err();
-        let validation = error.downcast_ref::<ValidationException>().unwrap();
-        assert_eq!(validation.field_list.as_ref().unwrap()[0].name, "nextToken");
+        let first = store.list(None, 2).unwrap();
+        assert_eq!(first.items.len(), 2);
+        let rest = store.list(first.last.clone(), 2).unwrap();
+        assert_eq!(rest.items.len(), 1);
+        assert!(rest.last.is_none());
+        assert!(first.last.unwrap() < rest.items[0].item_id);
     }
 }

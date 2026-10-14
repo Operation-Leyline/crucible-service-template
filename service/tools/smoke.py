@@ -42,8 +42,9 @@ def main():
         created.append(item["itemId"])
         path = "/items/" + item["itemId"]
         assert request("POST", "/items", first)[:2] == (201, {"item": item})
-        conflict = error("POST", "/items", {**first, "name": "Changed intent"}, 409, "ConflictException")
-        assert conflict["resourceId"] == item["itemId"] and conflict["resourceType"] == "Item"
+        # The framework's idempotency answers a reused token with other input.
+        status, conflict, _ = request("POST", "/items", {**first, "name": "Changed intent"})
+        assert status == 409 and conflict["__type"] == "ConflictException", (status, conflict)
         assert request("GET", path)[:2] == (200, {"item": item})
         status, response, _ = request("PUT", path, {"name": "Updated name"})
         assert status == 200 and response["item"]["name"] == "Updated name"
@@ -85,10 +86,18 @@ def main():
         # Release 1 may omit maxResults (the migration fills in its default).
         status, page, _ = request("GET", "/items", version="1")
         assert status == 200 and len(page["items"]) <= 20, page
+        # A sealed page token resumes a release 1 listing too.
+        status, page, _ = request("GET", "/items?maxResults=1", version="1")
+        assert status == 200 and "nextToken" in page, page
+        status, rest, _ = request("GET", "/items?" + urlencode({"nextToken": page["nextToken"]}), version="1")
+        assert status == 200 and rest["items"] and rest["items"][0]["itemId"] > page["items"][0]["itemId"], rest
         error("GET", "/items", None, 400, "ValidationException")
         assert request("GET", "/items", version="9")[0] == 400
         error("GET", "/items?maxResults=101", None, 400, "ValidationException")
-        error("GET", "/items?nextToken=forged", None, 400, "ValidationException")
+        error("GET", "/items?nextToken=forged&maxResults=1", None, 400, "ValidationException")
+        # A token is bound to its listing's filters: a page size may change, so it opens here.
+        status, page, _ = request("GET", "/items?maxResults=1")
+        assert request("GET", "/items?" + urlencode({"maxResults": 3, "nextToken": page["nextToken"]}))[0] == 200
         assert request("DELETE", path)[:2] == (204, None)
         assert request("DELETE", path)[:2] == (204, None)
         not_found = error("GET", path, None, 404, "ResourceNotFoundException")

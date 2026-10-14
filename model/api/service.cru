@@ -9,8 +9,12 @@ service MyService {
     errors [ValidationException, InternalServerException, UnknownOperationException]
 }
 
+// A resource declares what it is: its identifier and properties. Inputs and
+// views bind them with `$name`, and the compiler checks each binding.
 resource Item {
     id itemId: ItemId
+    property name: ItemName
+    property notes?: ItemDescription
 }
 
 string ItemId {
@@ -30,23 +34,25 @@ string ClientToken {
     pattern "^[!-~]+$"
 }
 
-string NextToken { length 1..64 }
+// Sealed by the framework's page tokens: room for a composite database key.
+string NextToken { length 1..1024 }
 
-structure ItemDetails {
-    itemId: ItemId
-    name: ItemName
-    notes?: ItemDescription
+// A view of Item: each `$` member takes its type and presence from the resource.
+structure ItemDetails for Item {
+    $itemId
+    $name
+    $notes
 }
 
 list ItemList: ItemDetails
 
-/// Creates an item; retries with the same token and fields return the original result for eight hours.
+/// Creates an item; retries with the same token and fields return the original result for 24 hours.
 operation CreateItem creates Item {
     http POST "/items" -> 201
 
     input {
-        name: ItemName
-        notes?: ItemDescription
+        $name
+        $notes?
         @token
         clientToken?: ClientToken
     }
@@ -55,7 +61,7 @@ operation CreateItem creates Item {
         item: ItemDetails
     }
 
-    errors [ConflictException, ServiceQuotaExceededException]
+    errors [ServiceQuotaExceededException]
 }
 
 /// Retrieves an item by its immutable identifier.
@@ -74,13 +80,13 @@ operation GetItem reads Item {
 }
 
 /// Replaces the editable fields; omitting notes clears them.
-operation UpdateItem updates Item {
+idempotent operation UpdateItem updates Item {
     http PUT "/items/{itemId}"
 
     input {
         $itemId
-        name: ItemName
-        notes?: ItemDescription
+        $name
+        $notes?
     }
 
     output {
@@ -99,7 +105,7 @@ operation DeleteItem deletes Item {
     }
 }
 
-/// Lists items in identifier order with opaque pagination tokens.
+/// Lists items in identifier order with sealed pagination tokens.
 operation ListItems lists Item {
     http GET "/items"
     paginated(inputToken: nextToken, outputToken: nextToken, pageSize: maxResults, items: items)
@@ -129,15 +135,7 @@ error ResourceNotFoundException {
     resourceType: ResourceType
 }
 
-/// A client token was reused with different item fields.
-error ConflictException {
-    status 409
-    message: string
-    resourceId: ItemId
-    resourceType: ResourceType
-}
-
-/// The in-memory item or create-receipt limit was reached.
+/// The in-memory item limit was reached.
 error ServiceQuotaExceededException {
     status 402
     message: string
