@@ -33,7 +33,7 @@ The root workspace selects `service` by default. Cargo commands work from the re
 
 ## Starting in RustRover
 
-You need Rust and GitHub read access to the private [Crucible repository](https://github.com/Operation-Leyline/crucible).
+You only need a modern Rust toolchain (Edition 2024). [Crucible](https://github.com/Operation-Leyline/crucible) is public and fetched automatically by Cargo.
 
 1. Select **Use this template > Create a new repository** on GitHub.
 2. Clone your repository and open it in RustRover.
@@ -240,7 +240,7 @@ Changes the framework cannot convert by itself, `reshape`, `retype` and `require
 
 The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
 
-Keep both root `Cargo.lock` and `client/Cargo.lock` committed. The SDK verification workflow starts from a clean build, checks the service and native clients over HTTP, and verifies cleanup. It fetches the private Crucible repository: after creating a repository from this template, configure variable `CRUCIBLE_APP_ID` and secret `CRUCIBLE_APP_PRIVATE_KEY` for the existing `crucible-ci-read` GitHub App, whose Operation-Leyline installation needs Contents: read access to `crucible`. GitHub does not copy template repository secrets into new repositories.
+Keep both root `Cargo.lock` and `client/Cargo.lock` committed. The SDK verification workflow starts from a clean build, checks the service and native clients over HTTP, and verifies cleanup. It fetches dependencies from the public Crucible repository automatically without requiring private tokens or credentials.
 
 ## Editor support
 
