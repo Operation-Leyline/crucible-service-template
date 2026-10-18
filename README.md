@@ -42,7 +42,7 @@ You only need a modern Rust toolchain (Edition 2024). [Crucible](https://github.
 
 The server prints `Listening on http://127.0.0.1:8080`. You can also run `cargo run` in a terminal. Set `CRUCIBLE_ADDR` to change the address, and `PAGE_TOKEN_SECRET` (32 or more random bytes, such as `openssl rand -hex 32`) to keep page tokens valid across restarts and instances.
 
-The model compiles in Rust inside the build script. No Smithy CLI, JVM, or runtime download is involved.
+The model compiles in Rust inside the build script. No external CLI, JVM, or runtime download is involved.
 
 ## Running the Rust client
 
@@ -238,7 +238,7 @@ Changes the framework cannot convert by itself, `reshape`, `retype` and `require
 
 `model/api/crucible.toml` holds the API policy beside the package manifest: naming and path conventions enforced by every Cargo build, with documentation requirements as warnings. Every build of the package applies it, the model's and the service's, with no `.policy(..)`; invalid rules and error findings fail generation. Any check can set its own severity, such as `members = { case = "camelCase", severity = "warning" }`. With the IntelliJ plugin, findings show in the `.cru` file as you type, and a naming finding offers a rename to the right case. Edit the rules for your service. See the [policy reference](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-policy.md) for severities and exact, documented exceptions.
 
-The pull-request compatibility check (`api-diff`) compares Smithy sources, so it is not included while the model is `.cru`. It returns once the checker reads `.cru` packages.
+The contract compatibility guard runs at build time against frozen baseline releases.
 
 Keep both root `Cargo.lock` and `client/Cargo.lock` committed. The SDK verification workflow starts from a clean build, checks the service and native clients over HTTP, and verifies cleanup. It fetches dependencies from the public Crucible repository automatically without requiring private tokens or credentials.
 
@@ -248,6 +248,6 @@ RustRover and IntelliJ IDEA 2026.2 support `.cru` files through the [Crucible pl
 
 ## Dependency versions
 
-The framework and build helper in the root `Cargo.toml` pin the same immutable commit. The generated Rust SDK automatically pins its runtime to that generator revision. Update the two root dependency pins together when adopting a release. `Cargo.lock` is committed, and the model compiles in Rust, so no Smithy compiler or JVM is involved.
+The framework and build helper in the root `Cargo.toml` pin the same immutable commit. The generated Rust SDK automatically pins its runtime to that generator revision. Update the two root dependency pins together when adopting a release. `Cargo.lock` is committed, and the model compiles in Rust, so no external compiler or JVM is involved.
 
 To build against a local Crucible checkout while changing Crucible itself, point both dependencies at it with `path = "<checkout>/crates/..."`, and add `.runtime_path("<checkout>/crates/crucible-client-runtime-rust")` to the Rust SDK in `model/build.rs`.
