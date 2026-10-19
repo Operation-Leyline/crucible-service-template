@@ -44,11 +44,11 @@ Set `CRUCIBLE_ADDR` to change the address, and `PAGE_TOKEN_SECRET` (32 or more r
 - **Sealed pagination.** The `PageTokens` interceptor seals each `nextToken` around the last item ID shown. Clients cannot read or edit it, it opens only for the same listing, and it expires after 24 hours.
 - **Modeled errors.** Invalid input is a `ValidationException` (400), a missing item a `ResourceNotFoundException` (404), and the store's 1,000-item limit a `ServiceQuotaExceededException` (402).
 
-There is no authentication, so both interceptors bind tokens to one anonymous caller (`allow_anonymous`). With authentication, pass `crucible_auth::Principal::caller_binding_of` instead.
+There is no authentication, so both interceptors bind tokens to one anonymous caller (`allow_anonymous`). With authentication, add `crucible-auth` as a git dependency at the same Crucible commit and pass `crucible_auth::Principal::caller_binding_of` instead.
 
 ## Making it yours
 
-1. **Name it.** In `model/api/service.cru`, rename `MyService`; the generated Rust module follows it (`MyService` → `my_service`), so update `my_service::` in `service/src`. Set `namespace` in `model/api/crucible.toml`, and the package names in `model/Cargo.toml` and `service/Cargo.toml`.
+1. **Name it.** In `model/api/service.cru`, rename `MyService`; the generated Rust module follows it (`MyService` → `my_service`), so update `my_service::` in `service/src`. Set `namespace` in `model/api/crucible.toml`, and the service's package name in `service/Cargo.toml`. To rename the model package, change `name` and `links` in `model/Cargo.toml`, the `service-model` dependency in `service/Cargo.toml`, and `model("service_model")` in `service/build.rs` together.
 2. **Model your API.** Replace `Item` in `service.cru`. Members are required unless written `name?:`, operations attach to a resource with role verbs such as `creates` and `reads`, and URI labels bind input members by name. A model error fails the build with every diagnostic, each pointing at its file, line and column.
 3. **Implement it.** Each operation is a generated trait; add one file per operation under `service/src/operations/<resource>/`. The compiler tells you which handlers are missing or out of date.
 4. **Store it.** Replace `service/src/store/` with durable storage, and `MemoryIdempotencyStore` with an `IdempotencyStore` over a table every instance shares, before running more than one instance.
@@ -74,13 +74,23 @@ model
     .generate_into("../target/rust-sdk");
 ```
 
-Other languages use the matching helper (`java_client`, `swift_client`, and so on) with that language's feature enabled on `crucible-build` in the root `Cargo.toml`. The [service example](https://github.com/Operation-Leyline/crucible-service-example) generates Rust and Java SDKs and consumes them from independent Rust and Kotlin apps. See Crucible's [build outputs guide](https://github.com/Operation-Leyline/crucible/blob/main/docs/build-outputs.md).
+Other languages use the matching helper (`java_client`, `swift_client`, and so on) with that language's feature enabled on `crucible-build` in the root `Cargo.toml`. The [service example](https://github.com/Operation-Leyline/crucible-service-example) generates Rust and Java SDKs and consumes them from independent Rust and Kotlin apps. See Crucible's [build outputs guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/build-outputs.md).
 
 ## API policy and releases
 
-`model/api/crucible.toml` holds the API policy: naming and path conventions that fail the build, and documentation requirements as warnings. Edit the rules for your service; see the [policy reference](https://github.com/Operation-Leyline/crucible/blob/main/docs/api-policy.md).
+`model/api/crucible.toml` holds the API policy: naming and path conventions that fail the build, and documentation requirements as warnings. Edit the rules for your service; see the [policy reference](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-policy.md).
 
-Once clients depend on your API, freeze each release with `crucible freeze model/api` and point `[model.baseline]` at it. Every build then refuses a breaking change that no `migration` declares, and the service keeps serving older clients from the same handlers. The [service example](https://github.com/Operation-Leyline/crucible-service-example) shows a second release with its migration; Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/main/docs/api-versions.md) covers the details.
+Once clients depend on your API, freeze each release before changing it. Install the `crucible` CLI at the same commit the workspace pins:
+
+```sh
+cargo install --git https://github.com/Operation-Leyline/crucible --rev 77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5 crucible-cli --locked
+```
+
+1. Run `crucible freeze model/api`. It writes `model/api/releases/<version>.json` and records it in `releases/crucible.lock`; commit both.
+2. Add `[model.baseline]` with `path = "releases/<version>.json"` to `model/api/crucible.toml`.
+3. Bump `version` in `service.cru`, and declare the change in a migration, such as `migration "2" from "1" { }` (every new version needs one, even with no breaking change).
+
+Every build then refuses a breaking change that no `migration` declares, and the service keeps serving older clients from the same handlers. Requests without a `Crucible-Version` header, such as curl, `requests.http` and `smoke.py`, are then served the oldest release; set `.api_version(Unversioned::Resolve(..))` in `service/src/main.rs` to serve them the current one instead. The [service example](https://github.com/Operation-Leyline/crucible-service-example) shows a second release with its migration; Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-versions.md) covers the details.
 
 ## Editor support
 

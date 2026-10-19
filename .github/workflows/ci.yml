@@ -26,6 +26,6 @@ jobs:
       - name: Smoke test over HTTP
         run: |
           cargo build --locked
-          CRUCIBLE_ADDR=127.0.0.1:8080 target/debug/crucible-service &
+          CRUCIBLE_ADDR=127.0.0.1:8080 cargo run --locked &
           for _ in $(seq 100); do curl -s -o /dev/null http://127.0.0.1:8080/ && break; sleep 0.2; done
           python3 service/tools/smoke.py http://127.0.0.1:8080
