@@ -24,7 +24,7 @@ service/
 
 You need a Rust toolchain with Edition 2024 (1.85 or newer). Cargo fetches Crucible; there is no CLI, JVM or other tool to install.
 
-1. Select **Use this template > Create a new repository** on GitHub, or run `gh repo create my-api --template Operation-Leyline/crucible-service-template --clone`.
+1. Select **Use this template > Create a new repository** on GitHub, or run `gh repo create my-api --template Operation-Leyline/crucible-service-template --private --clone`.
 2. Open the repository in your IDE and let Cargo finish loading, or run `cargo run` from the repository root.
 3. The server prints `Listening on http://127.0.0.1:8080`. Send the requests in `service/requests.http` in order; the create request saves `itemId` for the requests after it.
 
