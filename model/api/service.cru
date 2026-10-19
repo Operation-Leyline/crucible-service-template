@@ -3,7 +3,7 @@
 // resource with a role verb, and URI labels bind input members by name.
 
 service MyService {
-    version "2"
+    version "1"
     protocol json
     resources [Item]
     errors [ValidationException, InternalServerException, UnknownOperationException]

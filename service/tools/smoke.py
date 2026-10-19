@@ -8,14 +8,13 @@ from urllib.parse import urlencode, urlsplit
 endpoint = urlsplit(sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8080")
 
 
-def request(method, path, body=None, version=None):
+def request(method, path, body=None):
     connection_type = http.client.HTTPSConnection if endpoint.scheme == "https" else http.client.HTTPConnection
     connection = connection_type(endpoint.hostname, endpoint.port, timeout=10)
     try:
         connection.request(method, endpoint.path.rstrip("/") + path,
                            body if isinstance(body, bytes) else (None if body is None else json.dumps(body)),
-                           {"Content-Type": "application/json",
-                            **({"Crucible-Version": version} if version else {})})
+                           {"Content-Type": "application/json"})
         response = connection.getresponse()
         content = response.read()
         return response.status, json.loads(content) if content else None, dict(response.getheaders())
@@ -73,26 +72,7 @@ def main():
             assert validation["reason"] == "fieldValidationFailed" and validation["fieldList"]
         assert error("POST", "/items", b"{", 400, "ValidationException")["reason"] == "cannotParse"
         error("GET", "/items?maxResults=0", None, 400, "ValidationException")
-        # Release 1 (migrations.cru): `description`, a default page size, a sunset.
-        status, response, headers = request("POST", "/items", {"name": "Release 1", "description": "old name",
-                                                                "clientToken": str(uuid.uuid4())}, version="1")
-        assert status == 201 and response["item"]["description"] == "old name", response
-        created.append(response["item"]["itemId"])
-        headers = {key.lower(): value for key, value in headers.items()}
-        assert headers["crucible-version"] == "1" and headers["sunset"] == "Fri, 31 Dec 2027 00:00:00 GMT", headers
-        status, response, _ = request("GET", "/items/" + created[-1], version="1")
-        assert status == 200 and response["item"]["description"] == "old name", response
-        assert "notes" not in response["item"], response
-        # Release 1 may omit maxResults (the migration fills in its default).
-        status, page, _ = request("GET", "/items", version="1")
-        assert status == 200 and len(page["items"]) <= 20, page
-        # A sealed page token resumes a release 1 listing too.
-        status, page, _ = request("GET", "/items?maxResults=1", version="1")
-        assert status == 200 and "nextToken" in page, page
-        status, rest, _ = request("GET", "/items?" + urlencode({"nextToken": page["nextToken"]}), version="1")
-        assert status == 200 and rest["items"] and rest["items"][0]["itemId"] > page["items"][0]["itemId"], rest
         error("GET", "/items", None, 400, "ValidationException")
-        assert request("GET", "/items", version="9")[0] == 400
         error("GET", "/items?maxResults=101", None, 400, "ValidationException")
         error("GET", "/items?nextToken=forged&maxResults=1", None, 400, "ValidationException")
         # A token is bound to its listing's filters: a page size may change, so it opens here.
