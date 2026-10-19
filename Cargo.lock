@@ -375,7 +375,6 @@ version = "0.7.0"
 source = "git+https://github.com/Operation-Leyline/crucible?rev=77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5#77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5"
 dependencies = [
  "crucible-codegen-common",
- "crucible-codegen-java",
  "crucible-codegen-openapi",
  "crucible-codegen-rust",
  "crucible-revision",
@@ -398,17 +397,6 @@ dependencies = [
  "serde",
  "serde_json",
  "url",
-]
-
-[[package]]
-name = "crucible-codegen-java"
-version = "0.7.0"
-source = "git+https://github.com/Operation-Leyline/crucible?rev=77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5#77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5"
-dependencies = [
- "crucible-codegen-common",
- "crucible-smithy",
- "serde_json",
- "sha2",
 ]
 
 [[package]]

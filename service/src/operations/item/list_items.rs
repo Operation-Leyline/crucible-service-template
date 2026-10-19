@@ -10,7 +10,6 @@ impl ListItemsOperation for Service {
             .map(String::from_utf8)
             .transpose()
             .map_err(|_| Error::internal("a page token sealed a cursor that is not UTF-8"))?;
-        // Required since release 2; release 1 requests get its default.
         let page = self.items.list(after, input.max_results as usize)?;
         Ok(ListItemsOutput {
             items: page.items,

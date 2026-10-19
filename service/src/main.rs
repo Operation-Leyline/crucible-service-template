@@ -6,20 +6,13 @@ use std::sync::Arc;
 
 use crucible_server_runtime_rust::idempotency::{Idempotency, MemoryIdempotencyStore};
 use crucible_server_runtime_rust::page_tokens::{PageKeys, PageTokens};
-use crucible_server_runtime_rust::{Crucible, JsonProtocol, Unversioned};
+use crucible_server_runtime_rust::{Crucible, JsonProtocol};
 use operations::Service;
 
 #[tokio::main]
 async fn main() -> Result<(), crucible_server_runtime_rust::host::BoxError> {
     let service = Crucible::builder(my_service::operations(Arc::new(Service::default())))
         .protocol(JsonProtocol)
-        // The generated SDKs send their release in `Crucible-Version`. A
-        // caller that sends none, such as curl or `requests.http`, is served
-        // the current release. Without this, the framework would serve it
-        // the oldest, which suits callers that predate versions.
-        .api_version(Unversioned::Resolve(Arc::new(|_| {
-            Some(my_service::versions::CURRENT.name().to_owned())
-        })))
         // CreateItem's `clientToken`: a retry with the same input replays the
         // first success for 24 hours, and other input is a 409. The memory
         // store is one process's; a deployment keeps claims in a table every

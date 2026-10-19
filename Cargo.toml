@@ -1,9 +1,8 @@
 [workspace]
 members = ["model", "service"]
-exclude = ["client", "target/rust-sdk"]
 default-members = ["service"]
 resolver = "3"
 
 [workspace.dependencies]
 crucible-server-runtime-rust = { git = "https://github.com/Operation-Leyline/crucible", rev = "77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5", default-features = false, features = ["http", "idempotency", "page-tokens", "test-support"] }
-crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5", features = ["java", "openapi"] }
+crucible-build = { git = "https://github.com/Operation-Leyline/crucible", rev = "77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5", features = ["openapi"] }
