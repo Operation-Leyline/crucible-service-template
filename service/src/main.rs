@@ -11,7 +11,7 @@ use operations::Service;
 
 #[tokio::main]
 async fn main() -> Result<(), crucible_server_runtime_rust::host::BoxError> {
-    let service = Crucible::builder(my_service::operations(Arc::new(Service::default())))
+    let mut builder = Crucible::builder(my_service::operations(Arc::new(Service::default())))
         .protocol(JsonProtocol)
         // CreateItem's `clientToken`: a retry with the same input replays the
         // first success for 24 hours, and other input is a 409. The memory
@@ -22,11 +22,25 @@ async fn main() -> Result<(), crucible_server_runtime_rust::host::BoxError> {
         .interceptor(Idempotency::new(MemoryIdempotencyStore::new(), |_| None).allow_anonymous())
         // ListItems' `nextToken`: sealed, bound to the listing, and expiring
         // after 24 hours, with nothing stored.
-        .interceptor(PageTokens::new(page_keys()?, |_| None).allow_anonymous())
-        .build()?;
+        // A cursor is a UUID (36 bytes); bound it so sealed tokens fit the
+        // model's 1024-character nextToken limit.
+        .interceptor(
+            PageTokens::new(page_keys()?, |_| None)
+                .max_cursor(64)
+                .allow_anonymous(),
+        );
+    if cfg!(debug_assertions) {
+        builder = builder.explorer(crucible_server_runtime_rust::explorer::Explorer::new(
+            my_service::DESCRIPTION,
+        ));
+    }
+    let service = builder.build()?;
     let address = std::env::var("CRUCIBLE_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".into());
     let listener = tokio::net::TcpListener::bind(address).await?;
     println!("Listening on http://{}", listener.local_addr()?);
+    if cfg!(debug_assertions) {
+        println!("API explorer: http://{}/explorer/", listener.local_addr()?);
+    }
     crucible_server_runtime_rust::host::http_on(service, listener).await
 }
 

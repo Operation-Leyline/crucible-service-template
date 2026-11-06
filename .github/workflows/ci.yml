@@ -17,6 +17,14 @@ jobs:
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
       - uses: actions/checkout@v4
+      - uses: Operation-Leyline/crucible-actions/setup-crucible@4e2aa84e2f91beb18821932e7a1a2cc125823a98
+      - run: crucible check model/api
+      - run: crucible sdk generate
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Compile the generated TypeScript SDK
+        working-directory: target/sdk/typescript
+        run: npm install && npm run build
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -29,3 +37,4 @@ jobs:
           CRUCIBLE_ADDR=127.0.0.1:8080 cargo run --locked &
           for _ in $(seq 100); do curl -s -o /dev/null http://127.0.0.1:8080/ && break; sleep 0.2; done
           python3 service/tools/smoke.py http://127.0.0.1:8080
+          curl --fail --silent http://127.0.0.1:8080/explorer/ > /dev/null
