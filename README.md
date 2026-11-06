@@ -10,6 +10,7 @@ model/
   api/crucible.toml        # Package manifest: namespace, imports, API policy
   api/service.cru          # The API
   build.rs                 # Compile and publish the model; export OpenAPI
+crucible-sdk.toml          # SDK package name, endpoint and output directory
 service/
   build.rs                 # Generate server bindings from the model
   src/main.rs              # Host the service over HTTP
@@ -22,11 +23,13 @@ service/
 
 ## Getting started
 
-You need a Rust toolchain with Edition 2024 (1.85 or newer). Cargo fetches Crucible; there is no CLI, JVM or other tool to install.
+You need Rust 1.88 or newer. Cargo fetches Crucible; running the service needs no separate CLI installation.
 
 1. Select **Use this template > Create a new repository** on GitHub, or run `gh repo create my-api --template Operation-Leyline/crucible-service-template --private --clone`.
 2. Open the repository in your IDE and let Cargo finish loading, or run `cargo run` from the repository root.
-3. The server prints `Listening on http://127.0.0.1:8080`. Send the requests in `service/requests.http` in order; the create request saves `itemId` for the requests after it.
+3. Open `http://127.0.0.1:8080/explorer/` for the interactive API reference, or send the requests in `service/requests.http` in order. The create request saves `itemId` for the requests after it.
+
+The explorer is enabled in debug builds. The included CI installs the matching CLI automatically, validates the model, generates and compiles the TypeScript SDK, then checks and smoke-tests the Rust service. Public Crucible tooling needs no GitHub App or extra secrets.
 
 Set `CRUCIBLE_ADDR` to change the address, and `PAGE_TOKEN_SECRET` (32 or more random bytes, such as `openssl rand -hex 32`) to keep page tokens valid across restarts and instances.
 
@@ -64,7 +67,27 @@ python service/tools/smoke.py   # with the server running
 
 ## Generating clients
 
-`model/build.rs` compiles the model once, publishes it to the service, and writes an OpenAPI 3.1 document to `target/openapi/openapi.json`. Add a native SDK there; for Rust:
+Install the matching prebuilt CLI. On macOS or Linux:
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/Operation-Leyline/crucible/releases/download/v0.9.0/crucible-cli-installer.sh | sh
+```
+
+On Windows, run in PowerShell:
+
+```powershell
+Invoke-RestMethod https://github.com/Operation-Leyline/crucible/releases/download/v0.9.0/crucible-cli-installer.ps1 | Invoke-Expression
+```
+
+Then generate the declared SDK:
+
+```sh
+crucible sdk generate
+```
+
+`crucible-sdk.toml` declares the TypeScript package, local endpoint and output directory. Generation writes `target/sdk/typescript`; change that declaration to name your package or add SDKs for other languages. CI uses the compiler commit in `Cargo.lock`, so upgrading the Crucible dependency also updates the CLI it installs.
+
+`model/build.rs` compiles the model once, publishes it to the service, and writes an OpenAPI 3.1 document to `target/openapi/openapi.json`. To generate a Rust SDK during Cargo builds, add:
 
 ```rust
 model
@@ -74,23 +97,19 @@ model
     .generate_into("../target/rust-sdk");
 ```
 
-Other languages use the matching helper (`java_client`, `swift_client`, and so on) with that language's feature enabled on `crucible-build` in the root `Cargo.toml`. The [service example](https://github.com/Operation-Leyline/crucible-service-example) generates Rust and Java SDKs and consumes them from independent Rust and Kotlin apps. See Crucible's [build outputs guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/build-outputs.md).
+Other languages use the matching helper (`java_client`, `swift_client`, and so on) with that language's feature enabled on `crucible-build` in the root `Cargo.toml`. The [service example](https://github.com/Operation-Leyline/crucible-service-example) generates Rust and Java SDKs and consumes them from independent Rust and Kotlin apps. See Crucible's [build outputs guide](https://github.com/Operation-Leyline/crucible/blob/v0.9.0/docs/build-outputs.md).
 
 ## API policy and releases
 
-`model/api/crucible.toml` holds the API policy: naming and path conventions that fail the build, and documentation requirements as warnings. Edit the rules for your service; see the [policy reference](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-policy.md).
+`model/api/crucible.toml` holds the API policy: naming and path conventions that fail the build, and documentation requirements as warnings. Edit the rules for your service; see the [policy reference](https://github.com/Operation-Leyline/crucible/blob/v0.9.0/docs/api-policy.md).
 
-Once clients depend on your API, freeze each release before changing it. Install the `crucible` CLI at the same commit the workspace pins:
-
-```sh
-cargo install --git https://github.com/Operation-Leyline/crucible --rev 77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5 crucible-cli --locked
-```
+Once clients depend on your API, freeze each release before changing it. Use the matching CLI from the client-generation step above:
 
 1. Run `crucible freeze model/api`. It writes `model/api/releases/<version>.json` and records it in `releases/crucible.lock`; commit both.
 2. Add `[model.baseline]` with `path = "releases/<version>.json"` to `model/api/crucible.toml`.
 3. Bump `version` in `service.cru`, and declare the change in a migration, such as `migration "2" from "1" { }` (every new version needs one, even with no breaking change).
 
-Every build then refuses a breaking change that no `migration` declares, and the service keeps serving older clients from the same handlers. Requests without a `Crucible-Version` header, such as curl, `requests.http` and `smoke.py`, are then served the oldest release; set `.api_version(Unversioned::Resolve(..))` in `service/src/main.rs` to serve them the current one instead. The [service example](https://github.com/Operation-Leyline/crucible-service-example) shows a second release with its migration; Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/77df3aa52e68ac65042cbe1b7cb0ff2ff25ab7d5/docs/api-versions.md) covers the details.
+Every build then refuses a breaking change that no `migration` declares, and the service keeps serving older clients from the same handlers. Requests without a `Crucible-Version` header, such as curl, `requests.http` and `smoke.py`, are then served the oldest release; set `.api_version(Unversioned::Resolve(..))` in `service/src/main.rs` to serve them the current one instead. The [service example](https://github.com/Operation-Leyline/crucible-service-example) shows a second release with its migration; Crucible's [API versions guide](https://github.com/Operation-Leyline/crucible/blob/v0.9.0/docs/api-versions.md) covers the details.
 
 ## Editor support
 
@@ -98,6 +117,6 @@ RustRover and IntelliJ IDEA support `.cru` files through the [Crucible plugin](h
 
 ## Dependency versions
 
-`crucible-server-runtime-rust` and `crucible-build` in the root `Cargo.toml` pin the same Crucible commit; update them together. Commit `Cargo.lock`.
+`crucible-server-runtime-rust` and `crucible-build` in the root `Cargo.toml` select the same Crucible release tag; update them together and refresh `Cargo.lock`. CI reads its resolved commit automatically. Install that release's CLI locally too.
 
 To build against a local Crucible checkout while changing Crucible itself, point both dependencies at it with `path = "<checkout>/crates/..."`.
